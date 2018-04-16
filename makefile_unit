@@ -1,17 +1,17 @@
-# This file is part of CollectEDGARData.
+# This file is part of ExtractEDGAR_XBRL.
 
-# CollectEDGARData is free software: you can redistribute it and/or modify
+# ExtractEDGAR_XBRL is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# CollectEDGARData is distributed in the hope that it will be useful,
+# ExtractEDGAR_XBRL is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with CollectEDGARData.  If not, see <http://www.gnu.org/licenses/>.
+# along with ExtractEDGAR_XBRL.  If not, see <http://www.gnu.org/licenses/>.
 
 # see link below for make file dependency magic
 #
@@ -33,7 +33,7 @@ endif
 
 OUTFILE := Unit_Test
 
-CFG_INC := -I/home/dpriedel/projects/github/CollectEDGARData/src \
+CFG_INC := -I/home/dpriedel/projects/github/ExtractEDGAR_XBRL/src \
 		-I$(GTESTDIR) -I$(BOOSTDIR) -I/extra/gcc/cpp-json/include/
 
 RPATH_LIB := -Wl,-rpath,$(GCCDIR)/lib64 -Wl,-rpath,$(BOOSTDIR)/lib -Wl,-rpath,/usr/local/lib
@@ -41,15 +41,15 @@ RPATH_LIB := -Wl,-rpath,$(GCCDIR)/lib64 -Wl,-rpath,$(BOOSTDIR)/lib -Wl,-rpath,/u
 SDIR1 := .
 SRCS1 := $(SDIR1)/Unit_Test.cpp
 
-SDIR2 := ../CollectEDGARData/src
-SRCS2 := $(SDIR2)/HTTPS_Downloader.cpp \
-		$(SDIR2)/QuarterlyIndexFileRetriever.cpp \
-		$(SDIR2)/TickerConverter.cpp \
-		$(SDIR2)/PathNameGenerator.cpp \
-		$(SDIR2)/DailyIndexFileRetriever.cpp \
-		$(SDIR2)/FormFileRetriever.cpp
+SDIR2 := ../ExtractEDGAR_XBRL/src
+#SRCS2 := $(SDIR2)/HTTPS_Downloader.cpp \
+#		$(SDIR2)/QuarterlyIndexFileRetriever.cpp \
+#		$(SDIR2)/TickerConverter.cpp \
+#		$(SDIR2)/PathNameGenerator.cpp \
+#		$(SDIR2)/DailyIndexFileRetriever.cpp \
+#		$(SDIR2)/FormFileRetriever.cpp
 
-SRCS := $(SRCS1) $(SRCS2)
+SRCS := $(SRCS1) # $(SRCS2)
 
 VPATH := $(SDIR1):$(SDIR2)
 
@@ -66,9 +66,9 @@ CFG_LIB := -lpthread -lstdc++fs -L$(BOOSTDIR)/lib \
 		-L/usr/local/lib -lgmock -lgmock_main -lgtest
 
 OBJS1=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS1)))))
-OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
+#OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 
-OBJS=$(OBJS1) $(OBJS2)
+OBJS=$(OBJS1) # $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
 COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++17 -D NOCERTTEST -D_DEBUG -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
@@ -82,7 +82,7 @@ all: $(OUTFILE)
 $(OUTDIR)/%.o : %.cpp
 	$(COMPILE)
 
-$(OUTFILE): $(OUTDIR) $(OBJS1) $(OBJS2)
+$(OUTFILE): $(OUTDIR) $(OBJS1) # $(OBJS2)
 	$(LINK)
 
 -include $(DEPS)
