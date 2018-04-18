@@ -42,7 +42,7 @@
 #include <thread>
 #include <iostream>
 #include <numeric>
-#include <sstream>
+#include <fstream>
 #include <system_error>
 #include <experimental/filesystem>
 
@@ -61,9 +61,6 @@
 #include "Poco/Channel.h"
 #include "Poco/Message.h"
 
-#include "Poco/Net/HTTPStreamFactory.h"
-#include "Poco/Net/HTTPSStreamFactory.h"
-#include "Poco/Net/FTPStreamFactory.h"
 #include "Poco/ConsoleChannel.h"
 // #include "Poco/SimpleFileChannel.h"
 
@@ -79,9 +76,10 @@ using Poco::Util::HelpFormatter;
 using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::AutoPtr;
-using Poco::Net::HTTPStreamFactory;
-using Poco::Net::HTTPSStreamFactory;
-using Poco::Net::FTPStreamFactory;
+
+// some specific files for Testing.
+
+fs::path FILE_WITH_XML{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
 
 //	need these to feed into testing framework.
 
@@ -208,10 +206,6 @@ protected:
         setLogger(*THE_LOGGER);
 		if (!_helpRequested)
 		{
-			HTTPStreamFactory::registerFactory();
-			HTTPSStreamFactory::registerFactory();
-			FTPStreamFactory::registerFactory();
-
 			logger().information("Command line:");
 			std::ostringstream ostr;
 			for (ArgVec::const_iterator it = argv().begin(); it != argv().end(); ++it)
@@ -324,14 +318,16 @@ std::map<std::string, fs::file_time_type> CollectLastModifiedTimesForFilesInDire
 // NOTE: for some of these tests, I run an HTTPS server on localhost using
 // a directory structure that mimics part of the SEC server.
 //
-class PathNameGenerator_UnitTest : public Test
+class IdentifyXMLFilesToUse : public Test
 {
-
 
 };
 
-TEST_F(PathNameGenerator_UnitTest, TestSameStartEndDates)
+TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
+    std::ifstream input_file{FILE_WITH_XML};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
 	// DateRange date_range{bg::from_simple_string("2013-Oct-13"), bg::from_simple_string("2013-Oct-13")};
 	int count = 0;
 	// for ([[maybe_unused]] auto a_date : date_range)
