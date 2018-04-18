@@ -77,6 +77,8 @@ using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::AutoPtr;
 
+#include "EDGAR_XML_FileFilter.h"
+
 // some specific files for Testing.
 
 fs::path FILE_WITH_XML{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
@@ -328,12 +330,9 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
     std::ifstream input_file{FILE_WITH_XML};
     const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
     input_file.close();
-	// DateRange date_range{bg::from_simple_string("2013-Oct-13"), bg::from_simple_string("2013-Oct-13")};
-	int count = 0;
-	// for ([[maybe_unused]] auto a_date : date_range)
-	// 	++count;
 
-	ASSERT_THAT(count, Eq(1));
+	auto use_file = UseEDGAR_File(file_content);
+	ASSERT_THAT(use_file, Eq(true));
 }
 
 
