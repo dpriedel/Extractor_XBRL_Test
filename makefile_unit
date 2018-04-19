@@ -42,14 +42,14 @@ SDIR1 := .
 SRCS1 := $(SDIR1)/Unit_Test.cpp
 
 SDIR2 := ../ExtractEDGAR_XBRL/src
-#SRCS2 := $(SDIR2)/HTTPS_Downloader.cpp \
-#		$(SDIR2)/QuarterlyIndexFileRetriever.cpp \
+SRCS2 := $(SDIR2)/EDGAR_XML_FileFilter.cpp \
+		$(SDIR2)/SEC_Header.cpp
 #		$(SDIR2)/TickerConverter.cpp \
 #		$(SDIR2)/PathNameGenerator.cpp \
 #		$(SDIR2)/DailyIndexFileRetriever.cpp \
 #		$(SDIR2)/FormFileRetriever.cpp
 
-SRCS := $(SRCS1) # $(SRCS2)
+SRCS := $(SRCS1) $(SRCS2)
 
 VPATH := $(SDIR1):$(SDIR2)
 
@@ -61,14 +61,14 @@ ifeq "$(CFG)" "Debug"
 OUTDIR := Debug_unit
 
 CFG_LIB := -lpthread -lstdc++fs -L$(BOOSTDIR)/lib \
-		-lboost_date_time-mt-d -lboost_iostreams-mt-d \
-		-L/usr/local/lib -lPocoNetSSLd -lPocoNetd -lPocoFoundationd -lPocoUtild -lPocoZipd \
+		-lboost_date_time-mt-d -lboost_iostreams-mt-d -lboost_regex-mt-d \
+		-L/usr/local/lib -lPocoFoundationd -lPocoUtild \
 		-L/usr/local/lib -lgmock -lgmock_main -lgtest
 
 OBJS1=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS1)))))
-#OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
+OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 
-OBJS=$(OBJS1) # $(OBJS2)
+OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
 COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++17 -D NOCERTTEST -D_DEBUG -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
@@ -82,7 +82,7 @@ all: $(OUTFILE)
 $(OUTDIR)/%.o : %.cpp
 	$(COMPILE)
 
-$(OUTFILE): $(OUTDIR) $(OBJS1) # $(OBJS2)
+$(OUTFILE): $(OUTDIR) $(OBJS1) $(OBJS2)
 	$(LINK)
 
 -include $(DEPS)

@@ -47,7 +47,7 @@
 #include <experimental/filesystem>
 
 #include <boost/algorithm/string/predicate.hpp>
-// #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 #include <gmock/gmock.h>
 
 #include "Poco/Util/Application.h"
@@ -78,10 +78,14 @@ using Poco::Util::OptionCallback;
 using Poco::AutoPtr;
 
 #include "EDGAR_XML_FileFilter.h"
+#include "SEC_Header.h"
+
 
 // some specific files for Testing.
 
-fs::path FILE_WITH_XML{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
+fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 
 //	need these to feed into testing framework.
 
@@ -327,7 +331,7 @@ class IdentifyXMLFilesToUse : public Test
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
-    std::ifstream input_file{FILE_WITH_XML};
+    std::ifstream input_file{FILE_WITH_XML_10Q};
     const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
     input_file.close();
 
@@ -335,6 +339,83 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 	ASSERT_THAT(use_file, Eq(true));
 }
 
+TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
+{
+    std::ifstream input_file{FILE_WITHOUT_XML};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	auto use_file = UseEDGAR_File(file_content);
+	ASSERT_THAT(use_file, Eq(false));
+}
+
+class ValidateCanNavigateDocumentStructure : public Test
+{
+public:
+	const boost::regex regex_doc{R"***(<DOCUMENT>.*?</DOCUMENT>)***"};
+};
+
+TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
+{
+    std::ifstream input_file{FILE_WITH_XML_10Q};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	SEC_Header SEC_data;
+
+	ASSERT_NO_THROW(SEC_data.UseData(file_content));
+}
+
+TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
+{
+    std::ifstream input_file{FILE_WITH_XML_10K};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	SEC_Header SEC_data;
+
+	ASSERT_NO_THROW(SEC_data.UseData(file_content));
+}
+
+TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
+{
+    std::ifstream input_file{FILE_WITH_XML_10Q};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	int counter{0};
+    for (auto doc = boost::cregex_token_iterator(file_content.data(), file_content.data() + file_content.size(), regex_doc);
+        doc != boost::cregex_token_iterator{}; ++doc)
+    {
+		++counter;
+    }
+
+	ASSERT_THAT(counter, Eq(52));
+}
+
+TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
+{
+    std::ifstream input_file{FILE_WITH_XML_10K};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	int counter{0};
+    for (auto doc = boost::cregex_token_iterator(file_content.data(), file_content.data() + file_content.size(), regex_doc);
+        doc != boost::cregex_token_iterator{}; ++doc)
+    {
+		++counter;
+    }
+
+	ASSERT_THAT(counter, Eq(119));
+}
+
+class LocateFileContentToUse : public Test
+{
+public:
+    std::ifstream input_file{FILE_WITH_XML_10Q};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    // input_file.close();
+};
 
 int main(int argc, char** argv)
 {
