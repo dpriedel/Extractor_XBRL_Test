@@ -47,7 +47,6 @@
 #include <experimental/filesystem>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/regex.hpp>
 #include <gmock/gmock.h>
 
 #include "Poco/Util/Application.h"
@@ -351,8 +350,6 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 
 class ValidateCanNavigateDocumentStructure : public Test
 {
-public:
-	const boost::regex regex_doc{R"***(<DOCUMENT>.*?</DOCUMENT>)***"};
 };
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
@@ -377,20 +374,26 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 	ASSERT_NO_THROW(SEC_data.UseData(file_content));
 }
 
+TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
+{
+    std::ifstream input_file{FILE_WITH_XML_10Q};
+    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
+    input_file.close();
+
+	SEC_Header SEC_data;
+	SEC_data.UseData(file_content);
+	ASSERT_NO_THROW(SEC_data.ExtractHeaderFields());
+}
+
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 {
     std::ifstream input_file{FILE_WITH_XML_10Q};
     const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
     input_file.close();
 
-	int counter{0};
-    for (auto doc = boost::cregex_token_iterator(file_content.data(), file_content.data() + file_content.size(), regex_doc);
-        doc != boost::cregex_token_iterator{}; ++doc)
-    {
-		++counter;
-    }
+	auto result = LocateDocumentSections(file_content);
 
-	ASSERT_THAT(counter, Eq(52));
+	ASSERT_EQ(result.size(), 52);
 }
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
@@ -399,23 +402,79 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
     const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
     input_file.close();
 
-	int counter{0};
-    for (auto doc = boost::cregex_token_iterator(file_content.data(), file_content.data() + file_content.size(), regex_doc);
-        doc != boost::cregex_token_iterator{}; ++doc)
-    {
-		++counter;
-    }
+	auto result = LocateDocumentSections(file_content);
 
-	ASSERT_THAT(counter, Eq(119));
+	ASSERT_EQ(result.size(), 119);
 }
 
 class LocateFileContentToUse : public Test
 {
-public:
-    std::ifstream input_file{FILE_WITH_XML_10Q};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    // input_file.close();
+	
 };
+
+TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	ASSERT_GT(instance_document.size(), 0);
+}
+
+TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	ASSERT_GT(instance_document.size(), 0);
+}
+
+TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto label_document = LocateLabelDocument(document_sections_10Q);
+	ASSERT_GT(label_document.size(), 0);
+}
+
+TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto label_document = LocateLabelDocument(document_sections_10K);
+	ASSERT_GT(label_document.size(), 0);
+}
+
+class ParseFileContent : public Test
+{
+
+};
+
+TEST(ParseFileContent, VerifyCanParseInstanceDocument_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	ASSERT_NO_THROW(LocateInstanceDocument(document_sections_10Q));
+}
+
+TEST(ParseFileContent, VerifyCanParseInstanceDocument_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	ASSERT_NO_THROW(LocateInstanceDocument(document_sections_10K));
+}
+
 
 int main(int argc, char** argv)
 {
