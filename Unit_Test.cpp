@@ -265,64 +265,6 @@ private:
 	bool _helpRequested;
 };
 
-//  some utility routines used to check test output.
-
-MATCHER_P(StringEndsWith, value, std::string(negation ? "doesn't" : "does") +
-                        " end with " + value)
-{
-	return boost::algorithm::ends_with(arg, value);
-}
-
-int CountFilesInDirectoryTree(const fs::path& directory)
-{
-	int count = std::count_if(fs::recursive_directory_iterator(directory), fs::recursive_directory_iterator(),
-			[](const fs::directory_entry& entry) { return entry.status().type() == fs::file_type::regular; });
-	return count;
-}
-
-std::map<std::string, fs::file_time_type> CollectLastModifiedTimesForFilesInDirectory(const fs::path& directory)
-{
-	std::map<std::string, fs::file_time_type> results;
-
-    auto save_mod_time([&results] (const auto& dir_ent)
-    {
-		if (dir_ent.status().type() == fs::file_type::regular)
-			results[dir_ent.path().filename().string()] = fs::last_write_time(dir_ent.path());
-    });
-
-    std::for_each(fs::directory_iterator(directory), fs::directory_iterator(), save_mod_time);
-
-	return results;
-}
-
-std::map<std::string, fs::file_time_type> CollectLastModifiedTimesForFilesInDirectoryTree(const fs::path& directory)
-{
-	std::map<std::string, fs::file_time_type> results;
-
-    auto save_mod_time([&results] (const auto& dir_ent)
-    {
-		if (dir_ent.status().type() == fs::file_type::regular)
-			results[dir_ent.path().filename().string()] = fs::last_write_time(dir_ent.path());
-    });
-
-    std::for_each(fs::recursive_directory_iterator(directory), fs::recursive_directory_iterator(), save_mod_time);
-
-	return results;
-}
-
-// int CountTotalFormsFilesFound(const FormFileRetriever::FormsAndFilesList& file_list)
-// {
-// 	int grand_total{0};
-//     // grand_total = std::accumulate(std::begin(file_list), std::end(file_list), 0, [] (auto a, const auto& b) { return a + b.second.size(); });
-// 	for (const auto& [form_type, form_list] : file_list)
-// 		grand_total += form_list.size();
-//
-// 	return grand_total;
-// }
-
-// NOTE: for some of these tests, I run an HTTPS server on localhost using
-// a directory structure that mimics part of the SEC server.
-//
 class IdentifyXMLFilesToUse : public Test
 {
 
@@ -409,7 +351,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
 
 class LocateFileContentToUse : public Test
 {
-	
+
 };
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
@@ -419,7 +361,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
-	ASSERT_GT(instance_document.size(), 0);
+	ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version") && boost::algorithm::ends_with(instance_document, "</xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
@@ -429,7 +371,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
-	ASSERT_GT(instance_document.size(), 0);
+	ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version") && boost::algorithm::ends_with(instance_document, "</xbrli:xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
@@ -438,8 +380,8 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
     const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
-	auto label_document = LocateLabelDocument(document_sections_10Q);
-	ASSERT_GT(label_document.size(), 0);
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version") && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
@@ -448,31 +390,53 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
     const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
-	auto label_document = LocateLabelDocument(document_sections_10K);
-	ASSERT_GT(label_document.size(), 0);
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+	ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version") && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
 }
 
-class ParseFileContent : public Test
+class ParseDocumentContent : public Test
 {
 
 };
 
-TEST(ParseFileContent, VerifyCanParseInstanceDocument_10Q)
+TEST(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 {
     std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
     const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
-	ASSERT_NO_THROW(LocateInstanceDocument(document_sections_10Q));
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
-TEST(ParseFileContent, VerifyCanParseInstanceDocument_10K)
+TEST(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 {
     std::ifstream input_file_10K{FILE_WITH_XML_10K};
     const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
-	ASSERT_NO_THROW(LocateInstanceDocument(document_sections_10K));
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	ASSERT_NO_THROW(ParseXMLContent(instance_document));
+}
+
+TEST(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	ASSERT_NO_THROW(ParseXMLContent(labels_document));
+}
+
+TEST(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+	ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
 
