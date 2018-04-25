@@ -439,6 +439,40 @@ TEST(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
 	ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
+class ExtractDocumentContent : public Test
+{
+
+};
+
+TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	ASSERT_EQ(gaap_data.size(), 194);
+}
+
+TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	ASSERT_EQ(gaap_data.size(), 1984);
+}
+
+
 
 int main(int argc, char** argv)
 {

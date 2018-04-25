@@ -43,6 +43,31 @@
             "-I/extra/gcc/cpp-json/include/",
             "-march=native",
             "-o",
+            "Debug_unit/SEC_Header.o",
+            "../ExtractEDGAR_XBRL/src/SEC_Header.cpp"
+        ],
+        "directory": "/home/dpriedel/projects/github/ExtractEDGAR_XBRL_Test",
+        "file": "../ExtractEDGAR_XBRL/src//ExtractEDGAR_XBRLApp.cpp"
+    },
+	{
+        "arguments": [
+            "c++",
+            "-c",
+            "-x",
+            "c++",
+            "-O0",
+            "-g3",
+            "-std=c++17",
+            "-D",
+            "NOCERTTEST",
+            "-D_DEBUG",
+            "-fPIC",
+            "-I/home/dpriedel/projects/github/ExtractEDGAR_XBRL/src",
+            "-I/usr/local/include",
+            "-I/extra/boost/boost-1.67_gcc-7",
+            "-I/extra/gcc/cpp-json/include/",
+            "-march=native",
+            "-o",
             "Debug_unit/EDGAR_XML_FileFilter.o",
             "../ExtractEDGAR_XBRL/src/EDGAR_XML_FileFilter.cpp"
         ],
@@ -73,5 +98,30 @@
         ],
         "directory": "/home/dpriedel/projects/github/ExtractEDGAR_XBRL_Test",
         "file": "Unit_Test.cpp"
-    }
+    },
+	{
+			"arguments": [
+				"c++",
+				"-c",
+				"-x",
+				"c++",
+				"-O0",
+				"-g3",
+				"-std=c++17",
+				"-D",
+				"NOCERTTEST",
+				"-D_DEBUG",
+				"-fPIC",
+				"-I/home/dpriedel/projects/github/ExtractEDGAR_XBRL/src",
+				"-I/usr/local/include",
+				"-I/extra/boost/boost-1.67_gcc-7",
+				"-I/extra/gcc/cpp-json/include/",
+				"-march=native",
+				"-o",
+				"Debug_unit/Unit_Test.o",
+				"Unit_Test.cpp"
+			],
+			"directory": "/home/dpriedel/projects/github/ExtractEDGAR_XBRL_Test",
+			"file": "EndToEnd_Test.cpp"
+	}
 ]
