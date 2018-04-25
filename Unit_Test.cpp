@@ -472,6 +472,34 @@ TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 	ASSERT_EQ(gaap_data.size(), 1984);
 }
 
+TEST(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	ASSERT_EQ(label_data.size(), 1164);
+}
+
+TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	ASSERT_EQ(label_data.size(), 1989);
+}
+
 
 
 int main(int argc, char** argv)
