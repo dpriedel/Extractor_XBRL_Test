@@ -500,6 +500,34 @@ TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 	ASSERT_EQ(label_data.size(), 1989);
 }
 
+TEST(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	ASSERT_EQ(context_data.size(), 37);
+}
+
+TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
+{
+	std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	ASSERT_EQ(context_data.size(), 492);
+}
+
 
 
 int main(int argc, char** argv)
