@@ -37,6 +37,7 @@
 // =====================================================================================
 
 
+#include <algorithm>
 #include <string>
 #include <chrono>
 #include <thread>
@@ -85,6 +86,23 @@ using Poco::AutoPtr;
 fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
 fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
 fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+
+// some utility functions for testing.
+
+bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const std::vector<EE::EDGAR_Labels>& labels)
+{
+	bool all_good = true;
+	for (const auto& e : gaap_data)
+	{
+		auto pos = std::find_if(std::begin(labels), std::end(labels), [e](const auto& l){return l.system_label == e.label;});
+		if (pos == labels.end())
+		{
+			std::cout << "Can't find: " << e.label << '\n';
+			all_good = false;
+		}
+	}
+	return all_good;
+}
 
 //	need these to feed into testing framework.
 
@@ -526,6 +544,48 @@ TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
     auto context_data = ExtractContextDefinitions(instance_xml);
 
 	ASSERT_EQ(context_data.size(), 492);
+}
+
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLable_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	bool result = FindAllLabels(gaap_data, label_data);
+
+	ASSERT_TRUE(result);
+}
+
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLable_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	bool result = FindAllLabels(gaap_data, label_data);
+
+	ASSERT_TRUE(result);
 }
 
 
