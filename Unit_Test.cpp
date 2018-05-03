@@ -89,12 +89,13 @@ fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-1
 
 // some utility functions for testing.
 
-bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const std::vector<EE::EDGAR_Labels>& labels)
+bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_Labels& labels)
 {
 	bool all_good = true;
 	for (const auto& e : gaap_data)
 	{
-		auto pos = std::find_if(std::begin(labels), std::end(labels), [e](const auto& l){return l.system_label == e.label;});
+		// auto pos = std::find_if(std::begin(labels), std::end(labels), [e](const auto& l){return l.system_label == e.label;});
+		auto pos = labels.find(e.label);
 		if (pos == labels.end())
 		{
 			std::cout << "Can't find: " << e.label << '\n';
@@ -501,7 +502,7 @@ TEST(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-	ASSERT_EQ(label_data.size(), 1164);
+	ASSERT_EQ(label_data.size(), 125);
 }
 
 TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
@@ -515,7 +516,7 @@ TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-	ASSERT_EQ(label_data.size(), 1989);
+	ASSERT_EQ(label_data.size(), 746);
 }
 
 TEST(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
@@ -546,7 +547,7 @@ TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 	ASSERT_EQ(context_data.size(), 492);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLable_10Q)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10Q)
 {
     std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
     const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
@@ -567,7 +568,7 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLable_10Q)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLable_10K)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10K)
 {
     std::ifstream input_file_10K{FILE_WITH_XML_10K};
     const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
