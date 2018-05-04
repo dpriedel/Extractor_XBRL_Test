@@ -105,6 +105,21 @@ bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_
 	return all_good;
 }
 
+bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const std::vector<EE::ContextPeriod>& contexts)
+{
+	bool all_good = true;
+	for (const auto& e : gaap_data)
+	{
+		auto pos = std::find_if(std::begin(contexts), std::end(contexts), [e](const auto& c){return c.context_ID == e.context_ID;});
+		if (pos == contexts.end())
+		{
+			std::cout << "Can't find: " << e.context_ID << '\n';
+			all_good = false;
+		}
+	}
+	return all_good;
+}
+
 //	need these to feed into testing framework.
 
 int G_ARGC = 0;
@@ -463,6 +478,40 @@ class ExtractDocumentContent : public Test
 
 };
 
+template<typename ...Ts>
+auto AllNotEmpty(Ts ...ts)
+{
+	return ((! ts.empty()) && ...);
+}
+
+TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+	const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
+
+	ASSERT_TRUE(AllNotEmpty(a, b, c, d));
+}
+
+TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+	const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
+
+	ASSERT_TRUE(AllNotEmpty(a, b, c, d));
+}
+
 TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 {
     std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
@@ -547,7 +596,7 @@ TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 	ASSERT_EQ(context_data.size(), 492);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10Q)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
     std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
     const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
@@ -568,7 +617,7 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10Q)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10K)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
     std::ifstream input_file_10K{FILE_WITH_XML_10K};
     const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
@@ -582,6 +631,7 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10K)
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
 	auto instance_xml = ParseXMLContent(instance_document);
 
+    auto context_data = ExtractContextDefinitions(instance_xml);
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
 	bool result = FindAllLabels(gaap_data, label_data);
@@ -589,6 +639,51 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUsereLabl_10K)
 	ASSERT_TRUE(result);
 }
 
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithConext_10Q)
+{
+    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
+    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	bool result = FindAllContexts(gaap_data, context_data);
+
+	ASSERT_TRUE(result);
+}
+
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithConext_10K)
+{
+    std::ifstream input_file_10K{FILE_WITH_XML_10K};
+    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	bool result = FindAllContexts(gaap_data, context_data);
+
+	ASSERT_TRUE(result);
+}
+
+
+class LoadContentIntoDatabase : public Test
+{
+
+};
 
 
 int main(int argc, char** argv)
