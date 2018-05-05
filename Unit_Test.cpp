@@ -83,9 +83,9 @@ using Poco::AutoPtr;
 
 // some specific files for Testing.
 
-fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
-fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+const fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
+const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 
 // some utility functions for testing.
 
@@ -105,12 +105,13 @@ bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_
 	return all_good;
 }
 
-bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const std::vector<EE::ContextPeriod>& contexts)
+bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::ContextPeriod& contexts)
 {
 	bool all_good = true;
 	for (const auto& e : gaap_data)
 	{
-		auto pos = std::find_if(std::begin(contexts), std::end(contexts), [e](const auto& c){return c.context_ID == e.context_ID;});
+		// auto pos = std::find_if(std::begin(contexts), std::end(contexts), [e](const auto& c){return c.context_ID == e.context_ID;});
+        auto pos = contexts.find(e.context_ID);
 		if (pos == contexts.end())
 		{
 			std::cout << "Can't find: " << e.context_ID << '\n';
@@ -639,7 +640,7 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithConext_10Q)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
     std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
     const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
@@ -659,7 +660,7 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithConext_10Q)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithConext_10K)
+TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 {
     std::ifstream input_file_10K{FILE_WITH_XML_10K};
     const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
