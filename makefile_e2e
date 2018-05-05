@@ -65,7 +65,7 @@ CFG_LIB := -lpthread -lstdc++fs -L$(BOOSTDIR)/lib \
 		-L/usr/local/lib -lgmock -lgmock_main -lgtest \
 		-L/usr/lib \
 		-lpqxx \
-		-lpugixml \
+		-lpugixml 
 
 OBJS1=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS1)))))
 OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
