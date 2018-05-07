@@ -38,6 +38,7 @@
 
 
 #include <experimental/filesystem>
+#include <pqxx/pqxx>
 
 #include <gmock/gmock.h>
 
@@ -58,10 +59,35 @@ using namespace testing;
 class SingleFileEndToEnd : public Test
 {
 	public:
+
+        void SetUp() override
+        {
+		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    trxn.exec("DELETE FROM xbrl_extracts.edgar_filing_id");
+		    trxn.commit();
+			c.disconnect();
+        }
+
+		int CountRows()
+		{
+		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data");
+		    trxn.commit();
+			c.disconnect();
+			return row[0].as<int>();
+		}
 };
 
 
-TEST(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -99,10 +125,10 @@ TEST(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_TRUE(false);
+	ASSERT_EQ(CountRows(), 194);
 }
 
-TEST(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -140,7 +166,7 @@ TEST(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_TRUE(false);
+	ASSERT_EQ(CountRows(), 1984);
 }
 
 // TEST(DailyEndToEndTest, VerifyDownloadsOfExistingFormFilesWhenReplaceIsSpecifed)
