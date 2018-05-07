@@ -86,6 +86,7 @@ using Poco::AutoPtr;
 const fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
 const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
 const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 
 // some utility functions for testing.
 
@@ -307,21 +308,23 @@ class IdentifyXMLFilesToUse : public Test
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
-    std::ifstream input_file{FILE_WITH_XML_10Q};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
 
-	auto use_file = UseEDGAR_File(file_content);
+	auto use_file = UseEDGAR_File(file_content_10Q);
 	ASSERT_THAT(use_file, Eq(true));
 }
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
-    std::ifstream input_file{FILE_WITHOUT_XML};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10Q(fs::file_size(FILE_WITHOUT_XML), '\0');
+	std::ifstream input_file{FILE_WITHOUT_XML, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
 
-	auto use_file = UseEDGAR_File(file_content);
+	auto use_file = UseEDGAR_File(file_content_10Q);
 	ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -331,55 +334,60 @@ class ValidateCanNavigateDocumentStructure : public Test
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 {
-    std::ifstream input_file{FILE_WITH_XML_10Q};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
 
 	SEC_Header SEC_data;
 
-	ASSERT_NO_THROW(SEC_data.UseData(file_content));
+	ASSERT_NO_THROW(SEC_data.UseData(file_content_10Q));
 }
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 {
-    std::ifstream input_file{FILE_WITH_XML_10K};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
 
 	SEC_Header SEC_data;
 
-	ASSERT_NO_THROW(SEC_data.UseData(file_content));
+	ASSERT_NO_THROW(SEC_data.UseData(file_content_10K));
 }
 
 TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 {
-    std::ifstream input_file{FILE_WITH_XML_10Q};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
 
 	SEC_Header SEC_data;
-	SEC_data.UseData(file_content);
+	SEC_data.UseData(file_content_10Q);
 	ASSERT_NO_THROW(SEC_data.ExtractHeaderFields());
 }
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 {
-    std::ifstream input_file{FILE_WITH_XML_10Q};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
 
-	auto result = LocateDocumentSections(file_content);
+	auto result = LocateDocumentSections(file_content_10Q);
 
 	ASSERT_EQ(result.size(), 52);
 }
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
 {
-    std::ifstream input_file{FILE_WITH_XML_10K};
-    const std::string file_content{std::istreambuf_iterator<char>{input_file}, std::istreambuf_iterator<char>{}};
-    input_file.close();
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
 
-	auto result = LocateDocumentSections(file_content);
+	auto result = LocateDocumentSections(file_content_10K);
 
 	ASSERT_EQ(result.size(), 119);
 }
@@ -391,8 +399,11 @@ class LocateFileContentToUse : public Test
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -401,8 +412,11 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
@@ -411,8 +425,11 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10Q);
@@ -421,8 +438,11 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10K);
@@ -434,40 +454,52 @@ class ParseDocumentContent : public Test
 
 };
 
-TEST(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
+TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
 	ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
-TEST(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
+TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
 	ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
-TEST(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
+TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10Q);
 	ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
-TEST(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
+TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10K);
@@ -485,10 +517,13 @@ auto AllNotEmpty(Ts ...ts)
 	return ((! ts.empty()) && ...);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -499,10 +534,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 	ASSERT_TRUE(AllNotEmpty(a, b, c, d));
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
@@ -513,10 +551,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 	ASSERT_TRUE(AllNotEmpty(a, b, c, d));
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -527,10 +568,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 	ASSERT_EQ(gaap_data.size(), 194);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
@@ -541,10 +585,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 	ASSERT_EQ(gaap_data.size(), 1984);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10Q);
@@ -555,10 +602,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 	ASSERT_EQ(label_data.size(), 125);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10K);
@@ -569,10 +619,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 	ASSERT_EQ(label_data.size(), 746);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -583,10 +636,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 	ASSERT_EQ(context_data.size(), 37);
 }
 
-TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 {
-	std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
@@ -597,10 +653,13 @@ TEST(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 	ASSERT_EQ(context_data.size(), 492);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10Q);
@@ -618,10 +677,13 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10K);
@@ -640,10 +702,13 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
-    std::ifstream input_file_10Q{FILE_WITH_XML_10Q};
-    const std::string file_content_10Q{std::istreambuf_iterator<char>{input_file_10Q}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
 	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10Q);
@@ -660,10 +725,12 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 	ASSERT_TRUE(result);
 }
 
-TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 {
-    std::ifstream input_file_10K{FILE_WITH_XML_10K};
-    const std::string file_content_10K{std::istreambuf_iterator<char>{input_file_10K}, std::istreambuf_iterator<char>{}};
+	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
+	std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
 	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
 
 	auto labels_document = LocateLabelDocument(document_sections_10K);
@@ -681,10 +748,62 @@ TEST(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 }
 
 
-class LoadContentIntoDatabase : public Test
+class ValidateFolderFilters : public Test
 {
+public:
 
 };
+
+TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
+{
+	int files_with_XML{0};
+
+    auto test_file([&files_with_XML](const auto& dir_ent)
+    {
+        if (dir_ent.status().type() == fs::file_type::regular)
+        {
+			std::string file_content(fs::file_size(dir_ent.path()), '\0');
+			std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
+			input_file.read(&file_content[0], file_content.size());
+			input_file.close();
+
+			bool has_XML = TestFileForXBRL(file_content);
+			if (has_XML)
+				++files_with_XML;
+		}
+    });
+
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+
+	ASSERT_EQ(files_with_XML, 159);
+}
+
+TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
+{
+	int files_with_form{0};
+
+    auto test_file([&files_with_form](const auto& dir_ent)
+    {
+        if (dir_ent.status().type() == fs::file_type::regular)
+        {
+			std::string file_content(fs::file_size(dir_ent.path()), '\0');
+			std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
+			input_file.read(&file_content[0], file_content.size());
+			input_file.close();
+
+			if (TestFileForXBRL(file_content))
+			{
+				bool has_form = TestFileForFormType(file_content, "10-Q");
+				if (has_form)
+					++files_with_form;
+			}
+		}
+    });
+
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+
+	ASSERT_EQ(files_with_form, 157);
+}
 
 
 int main(int argc, char** argv)
