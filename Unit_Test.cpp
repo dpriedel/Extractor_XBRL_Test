@@ -48,6 +48,7 @@
 #include <experimental/filesystem>
 
 #include <boost/algorithm/string/predicate.hpp>
+
 #include <gmock/gmock.h>
 
 #include "Poco/Util/Application.h"
@@ -803,6 +804,60 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
 
 	ASSERT_EQ(files_with_form, 157);
+}
+
+TEST_F(ValidateFolderFilters, VerifyFindAll10K)
+{
+	int files_with_form{0};
+
+    auto test_file([&files_with_form](const auto& dir_ent)
+    {
+        if (dir_ent.status().type() == fs::file_type::regular)
+        {
+			std::string file_content(fs::file_size(dir_ent.path()), '\0');
+			std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
+			input_file.read(&file_content[0], file_content.size());
+			input_file.close();
+
+			if (TestFileForXBRL(file_content))
+			{
+				bool has_form = TestFileForFormType(file_content, "10-K");
+				if (has_form)
+					++files_with_form;
+			}
+		}
+    });
+
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+
+	ASSERT_EQ(files_with_form, 1);
+}
+
+TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
+{
+	int files_with_form{0};
+
+    auto test_file([&files_with_form](const auto& dir_ent)
+    {
+        if (dir_ent.status().type() == fs::file_type::regular)
+        {
+			std::string file_content(fs::file_size(dir_ent.path()), '\0');
+			std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
+			input_file.read(&file_content[0], file_content.size());
+			input_file.close();
+
+			if (TestFileForXBRL(file_content))
+			{
+				bool has_form = TestFileForFormInDateRange(file_content, bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30"));
+				if (has_form)
+					++files_with_form;
+			}
+		}
+    });
+
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+
+	ASSERT_EQ(files_with_form, 151);
 }
 
 
