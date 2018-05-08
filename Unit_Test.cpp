@@ -314,7 +314,8 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 	input_file.read(&file_content_10Q[0], file_content_10Q.size());
 	input_file.close();
 
-	auto use_file = UseEDGAR_File(file_content_10Q);
+	FileHasXBRL filter1;
+	auto use_file = filter1.ApplyFilter(file_content_10Q);
 	ASSERT_THAT(use_file, Eq(true));
 }
 
@@ -325,7 +326,8 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 	input_file.read(&file_content_10Q[0], file_content_10Q.size());
 	input_file.close();
 
-	auto use_file = UseEDGAR_File(file_content_10Q);
+	FileHasXBRL filter1;
+	auto use_file = filter1.ApplyFilter(file_content_10Q);
 	ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -768,7 +770,8 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			bool has_XML = TestFileForXBRL(file_content);
+			FileHasXBRL filter;
+			bool has_XML = filter.ApplyFilter(file_content);
 			if (has_XML)
 				++files_with_XML;
 		}
@@ -792,12 +795,16 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			if (TestFileForXBRL(file_content))
-			{
-				bool has_form = TestFileForFormType(file_content, "10-Q");
-				if (has_form)
-					++files_with_form;
-			}
+			SEC_Header SEC_data;
+			SEC_data.UseData(file_content);
+			SEC_data.ExtractHeaderFields();
+
+			FileHasXBRL filter1;
+			FileHasFormType filter2{SEC_data.GetFields(), "10-Q"};
+
+			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			if (has_form)
+				++files_with_form;
 		}
     });
 
@@ -819,12 +826,16 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			if (TestFileForXBRL(file_content))
-			{
-				bool has_form = TestFileForFormType(file_content, "10-K");
-				if (has_form)
-					++files_with_form;
-			}
+			SEC_Header SEC_data;
+			SEC_data.UseData(file_content);
+			SEC_data.ExtractHeaderFields();
+
+			FileHasXBRL filter1;
+			FileHasFormType filter2{SEC_data.GetFields(), "10-K"};
+
+			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			if (has_form)
+				++files_with_form;
 		}
     });
 
@@ -846,12 +857,16 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			if (TestFileForXBRL(file_content))
-			{
-				bool has_form = TestFileForFormInDateRange(file_content, bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30"));
-				if (has_form)
-					++files_with_form;
-			}
+			SEC_Header SEC_data;
+			SEC_data.UseData(file_content);
+			SEC_data.ExtractHeaderFields();
+
+			FileHasXBRL filter1;
+			FileIsWithinDateRange filter2{SEC_data.GetFields(), bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30")};
+
+			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			if (has_form)
+				++files_with_form;
 		}
     });
 
@@ -873,12 +888,16 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			if (TestFileForXBRL(file_content))
-			{
-				bool has_form = TestFileForFormInDateRange(file_content, bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30"));
-				if (has_form)
-					++files_with_form;
-			}
+			SEC_Header SEC_data;
+			SEC_data.UseData(file_content);
+			SEC_data.ExtractHeaderFields();
+
+			FileHasXBRL filter1;
+			FileIsWithinDateRange filter2{SEC_data.GetFields(), bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30")};
+
+			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			if (has_form)
+				++files_with_form;
 		}
     });
 
@@ -900,12 +919,17 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
 			input_file.read(&file_content[0], file_content.size());
 			input_file.close();
 
-			if (TestFileForXBRL(file_content))
-			{
-				bool has_form = TestFileForFormType(file_content, "10-Q") && TestFileForFormInDateRange(file_content, bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31"));
-				if (has_form)
-					++files_with_form;
-			}
+			SEC_Header SEC_data;
+			SEC_data.UseData(file_content);
+			SEC_data.ExtractHeaderFields();
+
+			FileHasXBRL filter1;
+			FileHasFormType filter2{SEC_data.GetFields(), "10-Q"};
+			FileIsWithinDateRange filter3{SEC_data.GetFields(), bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
+
+			bool has_form = ApplyFilters(file_content, filter1, filter2, filter3);
+			if (has_form)
+				++files_with_form;
 		}
     });
 
