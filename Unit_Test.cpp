@@ -88,11 +88,23 @@ const fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001
 const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
 const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
+const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 
 // some utility functions for testing.
 
 bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_Labels& labels)
 {
+	if (gaap_data.empty())
+	{
+		std::cout << "Empty GAAP data." << "\n";
+		return false;
+	}
+	if (labels.empty())
+	{
+		std::cout << "Empty EDGAR Labels data." << "\n";
+		return false;
+	}
+
 	bool all_good = true;
 	for (const auto& e : gaap_data)
 	{
@@ -109,6 +121,17 @@ bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_
 
 bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::ContextPeriod& contexts)
 {
+	if (gaap_data.empty())
+	{
+		std::cout << "Empty GAAP data." << "\n";
+		return false;
+	}
+	if (contexts.empty())
+	{
+		std::cout << "Empty Context data." << "\n";
+		return false;
+	}
+
 	bool all_good = true;
 	for (const auto& e : gaap_data)
 	{
@@ -315,7 +338,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 	input_file.close();
 
 	FileHasXBRL filter1;
-	auto use_file = filter1.ApplyFilter(file_content_10Q);
+	auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
 	ASSERT_THAT(use_file, Eq(true));
 }
 
@@ -327,7 +350,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 	input_file.close();
 
 	FileHasXBRL filter1;
-	auto use_file = filter1.ApplyFilter(file_content_10Q);
+	auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
 	ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -571,6 +594,23 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 	ASSERT_EQ(gaap_data.size(), 194);
 }
 
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	ASSERT_EQ(gaap_data.size(), 723);
+}
+
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 {
 	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
@@ -603,6 +643,23 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
     auto label_data = ExtractFieldLabels(labels_xml);
 
 	ASSERT_EQ(label_data.size(), 125);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	ASSERT_EQ(label_data.size(), 352);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
@@ -660,6 +717,30 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
 	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
 	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	bool result = FindAllLabels(gaap_data, label_data);
+
+	ASSERT_TRUE(result);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
 	input_file.read(&file_content_10Q[0], file_content_10Q.size());
 	input_file.close();
 
@@ -771,7 +852,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
 			input_file.close();
 
 			FileHasXBRL filter;
-			bool has_XML = filter.ApplyFilter(file_content);
+			bool has_XML = filter(EE::SEC_Header_fields{}, file_content);
 			if (has_XML)
 				++files_with_XML;
 		}
@@ -800,9 +881,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{SEC_data.GetFields(), "10-Q"};
+			FileHasFormType filter2{"10-Q"};
 
-			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
 				++files_with_form;
 		}
@@ -831,9 +912,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{SEC_data.GetFields(), "10-K"};
+			FileHasFormType filter2{"10-K"};
 
-			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
 				++files_with_form;
 		}
@@ -862,9 +943,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileIsWithinDateRange filter2{SEC_data.GetFields(), bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30")};
+			FileIsWithinDateRange filter2{bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30")};
 
-			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
 				++files_with_form;
 		}
@@ -893,9 +974,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileIsWithinDateRange filter2{SEC_data.GetFields(), bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30")};
+			FileIsWithinDateRange filter2{bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30")};
 
-			bool has_form = ApplyFilters(file_content, filter1, filter2);
+			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
 				++files_with_form;
 		}
@@ -924,10 +1005,10 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{SEC_data.GetFields(), "10-Q"};
-			FileIsWithinDateRange filter3{SEC_data.GetFields(), bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
+			FileHasFormType filter2{"10-Q"};
+			FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
-			bool has_form = ApplyFilters(file_content, filter1, filter2, filter3);
+			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2, filter3);
 			if (has_form)
 				++files_with_form;
 		}
