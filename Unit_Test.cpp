@@ -89,6 +89,7 @@ const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.t
 const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+const fs::path FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
 
 // some utility functions for testing.
 
@@ -696,6 +697,23 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 	ASSERT_EQ(context_data.size(), 37);
 }
 
+TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	ASSERT_EQ(context_data.size(), 12);
+}
+
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 {
 	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
@@ -761,6 +779,30 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
 	ASSERT_TRUE(result);
 }
 
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	bool result = FindAllLabels(gaap_data, label_data);
+
+	ASSERT_TRUE(result);
+}
+
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
 	std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
@@ -790,6 +832,29 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
 	std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
 	std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+    auto context_data = ExtractContextDefinitions(instance_xml);
+
+	bool result = FindAllContexts(gaap_data, context_data);
+
+	ASSERT_TRUE(result);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
+	std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
 	input_file.read(&file_content_10Q[0], file_content_10Q.size());
 	input_file.close();
 
