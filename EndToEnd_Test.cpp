@@ -367,7 +367,8 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_EQ(CountFilings(), 5);
+	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
+	ASSERT_EQ(CountFilings(), 155);
 }
 
 // TEST(DailyEndToEndTest, VerifyDownloadsOfExistingFormFilesWhenReplaceIsSpecifed)
