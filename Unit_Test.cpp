@@ -90,6 +90,7 @@ const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/000108
 const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const fs::path FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
+const fs::path FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
 
 // some utility functions for testing.
 
@@ -661,6 +662,23 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
     auto label_data = ExtractFieldLabels(labels_xml);
 
 	ASSERT_EQ(label_data.size(), 352);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
+{
+	std::string file_content_10Q(fs::file_size(FILE_MULTIPLE_LABEL_LINKS), '\0');
+	std::ifstream input_file{FILE_MULTIPLE_LABEL_LINKS, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10Q[0], file_content_10Q.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10Q{LocateDocumentSections(file_content_10Q)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10Q);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	ASSERT_EQ(label_data.size(), 158);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
