@@ -607,6 +607,131 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
 	ASSERT_EQ(CountFilings(), 5);
 }
 
+TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters3)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+		"--begin-date", "2013-Mar-1",
+		"--end-date", "2013-3-31",
+        "--log-level", "debug",
+		"--form", "10-K,10-Q",
+		"--form-dir", EDGAR_DIRECTORY.string()
+	};
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountFilings(), 5);
+}
+
+TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters4ShortCIKFails)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+		"--begin-date", "2013-Mar-1",
+		"--end-date", "2013-3-31",
+        "--log-level", "debug",
+		"--form", "10-K,10-Q",
+		"--CIK", "1541884",
+		"--form-dir", EDGAR_DIRECTORY.string()
+	};
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountFilings(), 0);
+}
+
+TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters5)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+		"--begin-date", "2013-Mar-1",
+		"--end-date", "2013-3-31",
+        "--log-level", "debug",
+		"--form", "10-K,10-Q",
+		"--CIK", "0000826772,0000826774",
+		"--form-dir", EDGAR_DIRECTORY.string()
+	};
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountFilings(), 1);
+}
+
 TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the

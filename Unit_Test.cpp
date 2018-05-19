@@ -964,7 +964,8 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{"10-Q"};
+			std::vector<std::string_view> forms{"10-Q"};
+			FileHasFormType filter2{forms};
 
 			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
@@ -995,7 +996,8 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{"10-K"};
+			std::vector<std::string_view> forms{"10-K"};
+			FileHasFormType filter2{forms};
 
 			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
 			if (has_form)
@@ -1088,7 +1090,8 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
 			SEC_data.ExtractHeaderFields();
 
 			FileHasXBRL filter1;
-			FileHasFormType filter2{"10-Q"};
+			std::vector<std::string_view> forms{"10-Q"};
+			FileHasFormType filter2{forms};
 			FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
 			bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2, filter3);
