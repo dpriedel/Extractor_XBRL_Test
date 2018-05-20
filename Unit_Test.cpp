@@ -91,6 +91,7 @@ const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const fs::path FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
 const fs::path FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
+const fs::path BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
 
 // some utility functions for testing.
 
@@ -506,6 +507,19 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 
 	auto instance_document = LocateInstanceDocument(document_sections_10K);
 	ASSERT_NO_THROW(ParseXMLContent(instance_document));
+}
+
+TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
+{
+	std::string file_content_10K(fs::file_size(BAD_FILE1), '\0');
+	std::ifstream input_file{BAD_FILE1, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
+	ASSERT_THROW(ParseXMLContent(instance_document), ExtractException);
 }
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
