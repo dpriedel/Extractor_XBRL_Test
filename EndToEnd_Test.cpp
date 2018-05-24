@@ -338,6 +338,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
 	std::vector<std::string> tokens{"the_program",
         "--log-level", "debug",
 		"--form", "10-Q",
+		"--log-path", "/tmp/test4.log",
 		"--list", "./test_directory_list.txt"
     };
 

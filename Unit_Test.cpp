@@ -92,6 +92,7 @@ const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/00
 const fs::path FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
 const fs::path FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
 const fs::path BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
+const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 
 // some utility functions for testing.
 
@@ -778,6 +779,30 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
     auto label_data = ExtractFieldLabels(labels_xml);
 
 	auto instance_document = LocateInstanceDocument(document_sections_10Q);
+	auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+	bool result = FindAllLabels(gaap_data, label_data);
+
+	ASSERT_TRUE(result);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
+{
+	std::string file_content_10K(fs::file_size(BAD_FILE2), '\0');
+	std::ifstream input_file{BAD_FILE2, std::ios_base::in | std::ios_base::binary};
+	input_file.read(&file_content_10K[0], file_content_10K.size());
+	input_file.close();
+
+	std::vector<std::string_view> document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+	auto labels_document = LocateLabelDocument(document_sections_10K);
+	auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+	auto instance_document = LocateInstanceDocument(document_sections_10K);
 	auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
