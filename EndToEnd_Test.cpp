@@ -15,7 +15,7 @@
 //
 // =====================================================================================
 
-	/* This file is part of CollectEDGARData. */
+	/* This file is part of ExtractEDGAR_XBRL. */
 
 	/* CollectEDGARData is free software: you can redistribute it and/or modify */
 	/* it under the terms of the GNU General Public License as published by */
@@ -36,13 +36,13 @@
 //  Description:
 // =====================================================================================
 
+#include "ExtractEDGAR_XBRLApp.h"
 
 #include <experimental/filesystem>
 #include <pqxx/pqxx>
 
 #include <gmock/gmock.h>
 
-#include "ExtractEDGAR_XBRLApp.h"
 #include "EDGAR_XML_FileFilter.h"
 
 
@@ -51,6 +51,7 @@ const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.t
 const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 
 int G_ARGC = 0;
 char** G_ARGV = nullptr;
@@ -208,6 +209,45 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 1984);
+}
+
+TEST_F(SingleFileEndToEnd, WorkWithBadFile2_10K)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-K",
+		"-f", BAD_FILE2.string()
+	};
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountRows(), 194);
 }
 
 class ProcessFolderEndtoEnd : public Test
