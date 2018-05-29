@@ -83,15 +83,15 @@ using Poco::AutoPtr;
 
 // some specific files for Testing.
 
-const fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
-const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
-const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-const fs::path FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
-const fs::path FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
-const fs::path BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
-const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
+constexpr const char* FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+constexpr const char* FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
+constexpr const char* FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+constexpr const char* EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
+constexpr const char* FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
+constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
+constexpr const char* BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
+constexpr const char* BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 
 // some utility functions for testing.
 
@@ -111,7 +111,6 @@ bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_
     bool all_good = true;
     for (const auto& e : gaap_data)
     {
-        // auto pos = std::find_if(std::begin(labels), std::end(labels), [e](const auto& l){return l.system_label == e.label;});
         auto pos = labels.find(e.label);
         if (pos == labels.end())
         {
@@ -138,7 +137,6 @@ bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::Cont
     bool all_good = true;
     for (const auto& e : gaap_data)
     {
-        // auto pos = std::find_if(std::begin(contexts), std::end(contexts), [e](const auto& c){return c.context_ID == e.context_ID;});
         auto pos = contexts.find(e.context_ID);
         if (pos == contexts.end())
         {
@@ -251,7 +249,7 @@ protected:
         HelpFormatter helpFormatter(options());
         helpFormatter.setCommand(commandName());
         helpFormatter.setUsage("OPTIONS");
-        helpFormatter.setHeader("A sample application that demonstrates some of the features of the Poco::Util::Application class.");
+        helpFormatter.setHeader("Test Driver application for ExtractEDGAR_XBRL.");
         helpFormatter.format(std::cout);
     }
 
@@ -439,7 +437,8 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
-    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version") && boost::algorithm::ends_with(instance_document, "</xbrl>\n"));
+    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version")
+        && boost::algorithm::ends_with(instance_document, "</xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
@@ -452,7 +451,8 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
-    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version") && boost::algorithm::ends_with(instance_document, "</xbrli:xbrl>\n"));
+    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version")
+        && boost::algorithm::ends_with(instance_document, "</xbrli:xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
@@ -465,7 +465,8 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
-    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version") && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
+    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version")
+        && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
@@ -478,7 +479,8 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
-    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version") && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
+    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version")
+        && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
 }
 
 class ParseDocumentContent : public Test
