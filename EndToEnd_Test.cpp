@@ -247,7 +247,7 @@ TEST_F(SingleFileEndToEnd, WorkWithBadFile2_10K)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_EQ(CountRows(), 194);
+	ASSERT_EQ(CountRows(), 1668);
 }
 
 class ProcessFolderEndtoEnd : public Test

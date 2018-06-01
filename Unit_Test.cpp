@@ -661,6 +661,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
+    /* auto label_data = ExtractFieldLabels(labels_xml); */
     auto label_data = ExtractFieldLabels(labels_xml);
 
     ASSERT_EQ(label_data.size(), 125);
@@ -1003,7 +1004,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<std::experimental::string_view> forms{"10-Q"};
+            std::vector<sview> forms{"10-Q"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -1037,7 +1038,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<std::experimental::string_view> forms{"10-K"};
+            std::vector<sview> forms{"10-K"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -1137,7 +1138,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<std::experimental::string_view> forms{"10-Q"};
+            std::vector<sview> forms{"10-Q"};
             FileHasFormType filter2{forms};
             FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
