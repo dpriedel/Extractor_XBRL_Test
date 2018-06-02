@@ -92,6 +92,7 @@ constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data
 constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
 constexpr const char* BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
 constexpr const char* BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
+constexpr const char* BAD_FILE3{"/vol_DA/EDGAR/Edgar_forms/1000697/10-K/0000950123-11-018381.txt"};
 
 // some utility functions for testing.
 
@@ -517,6 +518,19 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 {
     std::string file_content_10K(fs::file_size(BAD_FILE1), '\0');
+    std::ifstream input_file{BAD_FILE1, std::ios_base::in | std::ios_base::binary};
+    input_file.read(&file_content_10K[0], file_content_10K.size());
+    input_file.close();
+
+    auto document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    ASSERT_THROW(ParseXMLContent(instance_document), ExtractException);
+}
+
+TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
+{
+    std::string file_content_10K(fs::file_size(BAD_FILE3), '\0');
     std::ifstream input_file{BAD_FILE1, std::ios_base::in | std::ios_base::binary};
     input_file.read(&file_content_10K[0], file_content_10K.size());
     input_file.close();

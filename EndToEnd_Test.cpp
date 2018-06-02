@@ -410,6 +410,47 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
 	ASSERT_EQ(CountFilings(), 155);
 }
 
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-Q,10-K",
+		"--log-path", "/tmp/test1.log",
+		"--list", "./list_with_bad_file.txt"
+    };
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+    // there are 45 potential filings in the list.  3 are 'bad'.
+	ASSERT_EQ(CountFilings(), 42);
+}
+
 TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile_10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
