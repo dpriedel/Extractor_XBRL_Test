@@ -148,6 +148,26 @@ bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::Cont
     return all_good;
 }
 
+std::string ReadTestFile(const char* file_name)
+{
+    std::string file_content(fs::file_size(file_name), '\0');
+    std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
+    input_file.read(&file_content[0], file_content.size());
+    input_file.close();
+    
+    return file_content;
+}
+
+std::string ReadTestFile(const fs::path& file_name)
+{
+    std::string file_content(fs::file_size(file_name), '\0');
+    std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
+    input_file.read(&file_content[0], file_content.size());
+    input_file.close();
+    
+    return file_content;
+}
+
 //  need these to feed into testing framework.
 
 int G_ARGC = 0;
@@ -337,10 +357,7 @@ class IdentifyXMLFilesToUse : public Test
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
@@ -349,10 +366,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITHOUT_XML), '\0');
-    std::ifstream input_file{FILE_WITHOUT_XML, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITHOUT_XML);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
@@ -365,10 +379,7 @@ class ValidateCanNavigateDocumentStructure : public Test
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
 
@@ -377,10 +388,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     SEC_Header SEC_data;
 
@@ -389,10 +397,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 
 TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
     SEC_data.UseData(file_content_10Q);
@@ -401,10 +406,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto result = LocateDocumentSections(file_content_10Q);
 
@@ -413,10 +415,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto result = LocateDocumentSections(file_content_10K);
 
@@ -430,10 +429,7 @@ class LocateFileContentToUse : public Test
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -444,10 +440,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -458,10 +451,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -472,10 +462,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -491,10 +478,7 @@ class ParseDocumentContent : public Test
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -504,10 +488,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -517,10 +498,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 {
-    std::string file_content_10K(fs::file_size(BAD_FILE1), '\0');
-    std::ifstream input_file{BAD_FILE1, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(BAD_FILE1);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -530,10 +508,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
 {
-    std::string file_content_10K(fs::file_size(BAD_FILE3), '\0');
-    std::ifstream input_file{BAD_FILE1, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(BAD_FILE3);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -543,10 +518,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -556,10 +528,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -580,10 +549,7 @@ auto AllNotEmpty(Ts ...ts)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -597,10 +563,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -614,10 +577,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -631,10 +591,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -648,10 +605,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -665,10 +619,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -683,10 +634,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -700,10 +648,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_MULTIPLE_LABEL_LINKS), '\0');
-    std::ifstream input_file{FILE_MULTIPLE_LABEL_LINKS, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_MULTIPLE_LABEL_LINKS);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -717,10 +662,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -734,10 +676,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -751,10 +690,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -768,10 +704,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -785,10 +718,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -809,10 +739,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 {
-    std::string file_content_10K(fs::file_size(BAD_FILE2), '\0');
-    std::ifstream input_file{BAD_FILE2, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(BAD_FILE2);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -833,10 +760,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_NO_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_NO_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -857,10 +781,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -881,10 +802,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -906,11 +824,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_WITH_XML_10Q), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
-
+    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -927,10 +841,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10Q)
 {
-    std::string file_content_10Q(fs::file_size(FILE_SOME_NAMESPACE_10Q), '\0');
-    std::ifstream input_file{FILE_SOME_NAMESPACE_10Q, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10Q[0], file_content_10Q.size());
-    input_file.close();
+    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -948,10 +859,8 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 {
-    std::string file_content_10K(fs::file_size(FILE_WITH_XML_10K), '\0');
-    std::ifstream input_file{FILE_WITH_XML_10K, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content_10K[0], file_content_10K.size());
-    input_file.close();
+    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
@@ -981,10 +890,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             FileHasXBRL filter;
             bool has_XML = filter(EE::SEC_Header_fields{}, file_content);
@@ -1008,10 +914,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1042,10 +945,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1076,10 +976,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1109,10 +1006,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1142,10 +1036,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            std::string file_content(fs::file_size(dir_ent.path()), '\0');
-            std::ifstream input_file{dir_ent.path(), std::ios_base::in | std::ios_base::binary};
-            input_file.read(&file_content[0], file_content.size());
-            input_file.close();
+            auto file_content = ReadTestFile(dir_ent.path());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
