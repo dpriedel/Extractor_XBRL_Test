@@ -56,8 +56,6 @@ const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-0
 int G_ARGC = 0;
 char** G_ARGV = nullptr;
 
-namespace fs = std::experimental::filesystem;
-
 using namespace testing;
 
 
@@ -431,6 +429,50 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
 
         myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+    // there are 45 potential filings in the list.  3 are 'bad'.
+	ASSERT_EQ(CountFilings(), 42);
+}
+
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-K",
+        "-k", "2",
+		"--log-path", "/tmp/test1.log",
+		"--list", "./list_with_bad_file.txt"
+    };
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+
+        myApp.run();    //  do it again
 	}
 
     // catch any problems trying to setup application
