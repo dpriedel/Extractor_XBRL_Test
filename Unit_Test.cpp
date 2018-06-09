@@ -93,6 +93,24 @@ constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/da
 constexpr const char* BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
 constexpr const char* BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 constexpr const char* BAD_FILE3{"/vol_DA/EDGAR/Edgar_forms/1000697/10-K/0000950123-11-018381.txt"};
+constexpr const char* NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
+constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
+
+// This ctype facet does NOT classify spaces and tabs as whitespace
+// from cppreference example
+
+struct line_only_whitespace : std::ctype<char>
+{
+    static const mask* make_table()
+    {
+        // make a copy of the "C" locale table
+        static std::vector<mask> v(classic_table(), classic_table() + table_size);
+        v['\t'] &= ~space;      // tab will not be classified as whitespace
+        v[' '] &= ~space;       // space will not be classified as whitespace
+        return &v[0];
+    }
+    explicit line_only_whitespace(std::size_t refs = 0) : ctype(make_table(), false, refs) {}
+};
 
 // some utility functions for testing.
 
@@ -573,6 +591,21 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
     const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
 
     ASSERT_TRUE(AllNotEmpty(a, b, c, d));
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
+{
+    auto file_content_10K = ReadTestFile(NO_SHARES_OUT);
+
+    auto document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_xml = ParseXMLContent(instance_document);
+
+    const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
+
+    // there is no symbol in this file either.
+    ASSERT_TRUE(AllNotEmpty(b, c, d));
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
@@ -1058,6 +1091,38 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 5);
+}
+
+TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
+{
+    std::vector<std::string> list_of_files_to_process;
+
+    std::ifstream input_file{TEST_FILE_LIST};
+
+    // Tell the stream to use our facet, so only '\n' is treated as a space.
+
+    input_file.imbue(std::locale(input_file.getloc(), new line_only_whitespace()));
+
+    std::istream_iterator<std::string> itor{input_file};
+    std::istream_iterator<std::string> itor_end;
+    std::copy(
+        itor,
+        itor_end,
+        std::back_inserter(list_of_files_to_process)
+    );
+    input_file.close();
+    
+    std::vector<sview> forms1{"10-Q"};
+    auto qs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms1](const auto &fname) { return FormIsInFileName(forms1, fname); });
+    EXPECT_EQ(qs, 114);
+
+    std::vector<sview> forms2{"10-K"};
+    auto ks = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms2](const auto &fname) { return FormIsInFileName(forms2, fname); });
+    EXPECT_EQ(ks, 25);
+
+    std::vector<sview> forms3{"10-K", "10-Q"};
+    auto kqs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms3](const auto &fname) { return FormIsInFileName(forms3, fname); });
+    ASSERT_EQ(kqs, 139);
 }
 
 

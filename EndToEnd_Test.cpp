@@ -52,6 +52,7 @@ const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/000108
 const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
+const fs::path NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
 
 int G_ARGC = 0;
 char** G_ARGV = nullptr;
@@ -138,6 +139,45 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoNamespace_10Q)
         "--log-level", "debug",
 		"--form", "10-Q",
 		"-f", FILE_NO_NAMESPACE_10Q.string()
+	};
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountRows(), 723);
+}
+
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt_10K)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-K",
+		"-f", NO_SHARES_OUT.string()
 	};
 
     ExtractEDGAR_XBRLApp myApp;
@@ -408,6 +448,47 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
 	ASSERT_EQ(CountFilings(), 155);
 }
 
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume_10Q)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-Q",
+		"--log-path", "/tmp/test4.log",
+		"--list", "./test_directory_list.txt",
+        "--resume-at", "/vol_DA/EDGAR/Archives/edgar/data/1326688/0001104659-09-064933.txt"
+    };
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountFilings(), 31);
+}
+
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
@@ -449,6 +530,48 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 	ASSERT_EQ(CountFilings(), 42);
 }
 
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--form", "10-K",
+		"--log-path", "/tmp/test1.log",
+		"--list", "./list_with_bad_file.txt",
+        "filename-has-form"
+    };
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+    // there are 7 potential filings in the list.  1 is 'bad'.
+	ASSERT_EQ(CountFilings(), 6);
+}
+
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
@@ -459,7 +582,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 		"--form", "10-K",
         "-k", "2",
 		"--log-path", "/tmp/test1.log",
-		"--list", "./list_with_bad_file.txt"
+		"--list", "./list_with_bad_file.txt",
+        
     };
 
     ExtractEDGAR_XBRLApp myApp;
