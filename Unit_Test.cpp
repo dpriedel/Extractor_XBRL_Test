@@ -95,6 +95,8 @@ constexpr const char* BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/00010001
 constexpr const char* BAD_FILE3{"/vol_DA/EDGAR/Edgar_forms/1000697/10-K/0000950123-11-018381.txt"};
 constexpr const char* NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
 constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
+constexpr const char* MISSING_VALUES1_10K{"/vol_DA/EDGAR/Edgar_forms/1004980/10-K/0001193125-12-065537.txt"};
+constexpr const char* MISSING_VALUES2_10K{"/vol_DA/EDGAR/Edgar_forms/1002638/10-K/0001193125-09-179839.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -848,6 +850,48 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto context_data = ExtractContextDefinitions(instance_xml);
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+    bool result = FindAllLabels(gaap_data, label_data);
+
+    ASSERT_TRUE(result);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_10K)
+{
+    auto file_content_10K = ReadTestFile(MISSING_VALUES1_10K);
+
+    auto document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+
+    bool result = FindAllLabels(gaap_data, label_data);
+
+    ASSERT_TRUE(result);
+}
+
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2_10K)
+{
+    auto file_content_10K = ReadTestFile(MISSING_VALUES2_10K);
+
+    auto document_sections_10K{LocateDocumentSections(file_content_10K)};
+
+    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_xml = ParseXMLContent(instance_document);
+
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
     bool result = FindAllLabels(gaap_data, label_data);

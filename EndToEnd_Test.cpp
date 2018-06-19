@@ -53,6 +53,7 @@ const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 const fs::path NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
+const fs::path MISSING_VALUES_LIST{"../ExtractEDGAR_XBRL_Test/missing_values_files.txt"};
 
 int G_ARGC = 0;
 char** G_ARGV = nullptr;
@@ -205,7 +206,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt_10K)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_EQ(CountRows(), 723);
+	ASSERT_EQ(CountRows(), 79);
 }
 
 TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
@@ -309,9 +310,18 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
 		    pqxx::work trxn{c};
 
-		    // make sure the DB is empty before we start
-
 		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data");
+		    trxn.commit();
+			c.disconnect();
+			return row[0].as<int>();
+		}
+
+		int CountMissingValues()
+		{
+		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::work trxn{c};
+
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data WHERE user_label = 'Missing Value'");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -530,6 +540,47 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 	ASSERT_EQ(CountFilings(), 42);
 }
 
+TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--log-level", "debug",
+		"--log-path", "/tmp/test8.log",
+		"--list", MISSING_VALUES_LIST,
+		"--form", "10-K",
+        "-k", "4"
+    };
+
+    ExtractEDGAR_XBRLApp myApp;
+	try
+	{
+        myApp.init(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+
+        myApp.run();
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+		// poco_fatal(myApp->logger(), theProblem.what());
+
+		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+		throw;	//	so test framework will get it too.
+	}
+	catch (...)
+	{		// handle exception: unspecified
+		myApp.logger().error("Something totally unexpected happened.");
+		throw;
+	}
+	ASSERT_EQ(CountMissingValues(), 0);
+}
+
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
@@ -613,8 +664,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-    // there are 45 potential filings in the list.  3 are 'bad'.
-	ASSERT_EQ(CountFilings(), 42);
+    // there are 7 potential filings in the list.  1 is 'bad'.
+	ASSERT_EQ(CountFilings(), 6);
 }
 
 TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile_10K)
