@@ -168,26 +168,6 @@ bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::Cont
     return all_good;
 }
 
-std::string ReadTestFile(const char* file_name)
-{
-    std::string file_content(fs::file_size(file_name), '\0');
-    std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content[0], file_content.size());
-    input_file.close();
-    
-    return file_content;
-}
-
-std::string ReadTestFile(const fs::path& file_name)
-{
-    std::string file_content(fs::file_size(file_name), '\0');
-    std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
-    input_file.read(&file_content[0], file_content.size());
-    input_file.close();
-    
-    return file_content;
-}
-
 //  need these to feed into testing framework.
 
 int G_ARGC = 0;
@@ -377,7 +357,7 @@ class IdentifyXMLFilesToUse : public Test
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
@@ -386,7 +366,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITHOUT_XML);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITHOUT_XML);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
@@ -399,7 +379,7 @@ class ValidateCanNavigateDocumentStructure : public Test
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
 
@@ -408,7 +388,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     SEC_Header SEC_data;
 
@@ -417,7 +397,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 
 TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
     SEC_data.UseData(file_content_10Q);
@@ -426,7 +406,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto result = LocateDocumentSections(file_content_10Q);
 
@@ -435,7 +415,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto result = LocateDocumentSections(file_content_10K);
 
@@ -449,7 +429,7 @@ class LocateFileContentToUse : public Test
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -460,7 +440,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -471,7 +451,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -482,7 +462,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -498,7 +478,7 @@ class ParseDocumentContent : public Test
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -508,7 +488,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -518,7 +498,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 {
-    auto file_content_10K = ReadTestFile(BAD_FILE1);
+    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE1);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -528,7 +508,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
 {
-    auto file_content_10K = ReadTestFile(BAD_FILE3);
+    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE3);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -538,7 +518,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -548,7 +528,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -569,7 +549,7 @@ auto AllNotEmpty(Ts ...ts)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -583,7 +563,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -597,7 +577,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
 {
-    auto file_content_10K = ReadTestFile(NO_SHARES_OUT);
+    auto file_content_10K = LoadXMLDataFileForUse(NO_SHARES_OUT);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -612,7 +592,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -626,7 +606,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -640,7 +620,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -654,7 +634,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -669,7 +649,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -683,7 +663,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_MULTIPLE_LABEL_LINKS);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_MULTIPLE_LABEL_LINKS);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -697,7 +677,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -711,7 +691,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -725,7 +705,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -739,7 +719,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -753,7 +733,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -774,7 +754,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 {
-    auto file_content_10K = ReadTestFile(BAD_FILE2);
+    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE2);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -795,7 +775,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -816,7 +796,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -837,7 +817,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -859,7 +839,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_10K)
 {
-    auto file_content_10K = ReadTestFile(MISSING_VALUES1_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(MISSING_VALUES1_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -880,7 +860,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2_10K)
 {
-    auto file_content_10K = ReadTestFile(MISSING_VALUES2_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(MISSING_VALUES2_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -901,7 +881,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -918,7 +898,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10Q)
 {
-    auto file_content_10Q = ReadTestFile(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -936,7 +916,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 {
-    auto file_content_10K = ReadTestFile(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -967,7 +947,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             FileHasXBRL filter;
             bool has_XML = filter(EE::SEC_Header_fields{}, file_content);
@@ -991,7 +971,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1022,7 +1002,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1053,7 +1033,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1083,7 +1063,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1113,7 +1093,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = ReadTestFile(dir_ent.path());
+            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
