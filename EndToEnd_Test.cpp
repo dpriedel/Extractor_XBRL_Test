@@ -578,7 +578,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
 		myApp.logger().error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_EQ(CountMissingValues(), 0);
+	ASSERT_TRUE(CountFilings() > 0 && CountMissingValues() == 0);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
