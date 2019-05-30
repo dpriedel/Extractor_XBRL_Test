@@ -19,8 +19,8 @@
 #
 MAKE=gmake
 
-BOOSTDIR := /extra/boost/boost-1.67_gcc-8
-GCCDIR := /extra/gcc/gcc-8
+BOOSTDIR := /extra/boost/boost-1.70_gcc-9
+GCCDIR := /extra/gcc/gcc-9
 GTESTDIR := /usr/local/include
 CPP := $(GCCDIR)/bin/g++
 
@@ -33,7 +33,7 @@ endif
 
 OUTFILE := Unit_Test
 
-CFG_INC := -I/home/dpriedel/projects/github/ExtractEDGAR_XBRL/src \
+CFG_INC := -I/home/dpriedel/projects/github/Extractor_Markup/src \
 		-I$(GTESTDIR) -I$(BOOSTDIR) -I/extra/gcc/cpp-json/include/
 
 RPATH_LIB := -Wl,-rpath,$(GCCDIR)/lib64 -Wl,-rpath,$(BOOSTDIR)/lib -Wl,-rpath,/usr/local/lib
@@ -41,8 +41,9 @@ RPATH_LIB := -Wl,-rpath,$(GCCDIR)/lib64 -Wl,-rpath,$(BOOSTDIR)/lib -Wl,-rpath,/u
 SDIR1 := .
 SRCS1 := $(SDIR1)/Unit_Test.cpp
 
-SDIR2 := ../ExtractEDGAR_XBRL/src
-SRCS2 := $(SDIR2)/EDGAR_XML_FileFilter.cpp \
+SDIR2 := ../Extractor_Markup/src
+SRCS2 := $(SDIR2)/Extractor_XBRL_FileFilter.cpp \
+		$(SDIR2)/Extractor_Utils.cpp \
 		$(SDIR2)/SEC_Header.cpp
 #		$(SDIR2)/TickerConverter.cpp \
 #		$(SDIR2)/PathNameGenerator.cpp \
@@ -60,9 +61,11 @@ ifeq "$(CFG)" "Debug"
 
 OUTDIR := Debug_unit
 
-CFG_LIB := -lpthread -lstdc++fs -L$(BOOSTDIR)/lib \
-		-lboost_date_time-mt-d -lboost_iostreams-mt-d -lboost_regex-mt-d \
-		-L/usr/local/lib -lPocoFoundationd -lPocoUtild \
+CFG_LIB := -lpthread \
+		-L$(GCCDIR)/lib64 \
+		-L$(BOOSTDIR)/lib \
+		-lboost_date_time-mt-d-x64 -lboost_iostreams-mt-d-x64 -lboost_regex-mt-d-x64 \
+		-L/usr/local/lib \
 		-lgmock -lgmock_main -lgtest \
 		-L/usr/lib \
 		-lpugixml \
@@ -74,8 +77,10 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
-COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++17 -D NOCERTTEST -D_DEBUG -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
+# COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -fPIC -fsanitize=address -o $@ $(CFG_INC) $< -march=native -MMD -MP
+# LINK := $(CPP)  -g -fsanitize=address -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 
 endif #	DEBUG configuration
 

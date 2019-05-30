@@ -15,20 +15,20 @@
 //
 // =====================================================================================
 
-    /* This file is part of CollectEDGARData. */
+    /* This file is part of Extractor_Markup. */
 
-    /* CollectEDGARData is free software: you can redistribute it and/or modify */
+    /* Extractor_Markup is free software: you can redistribute it and/or modify */
     /* it under the terms of the GNU General Public License as published by */
     /* the Free Software Foundation, either version 3 of the License, or */
     /* (at your option) any later version. */
 
-    /* CollectEDGARData is distributed in the hope that it will be useful, */
+    /* Extractor_Markup is distributed in the hope that it will be useful, */
     /* but WITHOUT ANY WARRANTY; without even the implied warranty of */
     /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
     /* GNU General Public License for more details. */
 
     /* You should have received a copy of the GNU General Public License */
-    /* along with CollectEDGARData.  If not, see <http://www.gnu.org/licenses/>. */
+    /* along with Extractor_Markup.  If not, see <http://www.gnu.org/licenses/>. */
 
 
 // =====================================================================================
@@ -39,7 +39,7 @@
 
 #include <algorithm>
 #include <chrono>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -51,52 +51,32 @@
 
 #include <gmock/gmock.h>
 
-#include "Poco/AutoPtr.h"
-#include "Poco/Channel.h"
-#include "Poco/ConsoleChannel.h"
-#include "Poco/Logger.h"
-#include "Poco/Message.h"
-#include "Poco/Util/AbstractConfiguration.h"
-#include "Poco/Util/Application.h"
-#include "Poco/Util/HelpFormatter.h"
-#include "Poco/Util/Option.h"
-#include "Poco/Util/OptionSet.h"
-#include <Poco/Net/NetException.h>
-// #include "Poco/SimpleFileChannel.h"
-
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 using namespace testing;
 
-
-using Poco::Util::Application;
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::HelpFormatter;
-using Poco::Util::AbstractConfiguration;
-using Poco::Util::OptionCallback;
-using Poco::AutoPtr;
-
-#include "EDGAR_XML_FileFilter.h"
+#include "Extractor.h"
+#include "Extractor_Utils.h"
+#include "Extractor_XBRL_FileFilter.h"
 #include "SEC_Header.h"
 
 
 // some specific files for Testing.
 
-constexpr const char* FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-constexpr const char* FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
-constexpr const char* FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-constexpr const char* EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
-constexpr const char* FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
-constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/EDGAR/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
-constexpr const char* BAD_FILE1{"/vol_DA/EDGAR/Edgar_forms/1000228/10-K/0001000228-11-000014.txt"};
-constexpr const char* BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
-constexpr const char* BAD_FILE3{"/vol_DA/EDGAR/Edgar_forms/1000697/10-K/0000950123-11-018381.txt"};
-constexpr const char* NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
+constexpr const char* FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+constexpr const char* FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
+constexpr const char* FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+constexpr const char* EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
+constexpr const char* FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
+constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
+constexpr const char* BAD_FILE1{"/vol_DA/SEC/SEC_forms/1000228/10-K/0001000228-11-000014.txt"};
+constexpr const char* BAD_FILE2{"/vol_DA/SEC/SEC_forms/1000180/10-K/0001000180-16-000068.txt"};
+constexpr const char* BAD_FILE3{"/vol_DA/SEC/SEC_forms/1000697/10-K/0000950123-11-018381.txt"};
+constexpr const char* NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/1023453/10-K/0001144204-12-017368.txt"};
 constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
-constexpr const char* MISSING_VALUES1_10K{"/vol_DA/EDGAR/Edgar_forms/1004980/10-K/0001193125-12-065537.txt"};
-constexpr const char* MISSING_VALUES2_10K{"/vol_DA/EDGAR/Edgar_forms/1002638/10-K/0001193125-09-179839.txt"};
+constexpr const char* MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/1004980/10-K/0001193125-12-065537.txt"};
+constexpr const char* MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/1002638/10-K/0001193125-09-179839.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -116,33 +96,33 @@ struct line_only_whitespace : std::ctype<char>
 
 // some utility functions for testing.
 
-bool FindAllLabels(const std::vector<EE::GAAP_Data>& gaap_data, const EE::EDGAR_Labels& labels)
+int FindAllLabels(const std::vector<EM::GAAP_Data>& gaap_data, const EM::Extractor_Labels& labels)
 {
     if (gaap_data.empty())
     {
         std::cout << "Empty GAAP data." << "\n";
-        return false;
+        return -1;
     }
     if (labels.empty())
     {
         std::cout << "Empty EDGAR Labels data." << "\n";
-        return false;
+        return -1;
     }
 
-    bool all_good = true;
+    int missing = 0;
     for (const auto& e : gaap_data)
     {
         auto pos = labels.find(e.label);
         if (pos == labels.end())
         {
             std::cout << "Can't find: " << e.label << '\n';
-            all_good = false;
+            missing += 1;
         }
     }
-    return all_good;
+    return missing;
 }
 
-bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::ContextPeriod& contexts)
+bool FindAllContexts(const std::vector<EM::GAAP_Data>& gaap_data, const EM::ContextPeriod& contexts)
 {
     if (gaap_data.empty())
     {
@@ -168,187 +148,6 @@ bool FindAllContexts(const std::vector<EE::GAAP_Data>& gaap_data, const EE::Cont
     return all_good;
 }
 
-//  need these to feed into testing framework.
-
-int G_ARGC = 0;
-char** G_ARGV = nullptr;
-
-Poco::Logger* THE_LOGGER = nullptr;
-
-// using one of the example Poco programs to get going
-
-class XBRL_Extract_Unit_Test: public Application
-    /// This sample demonstrates some of the features of the Util::Application class,
-    /// such as configuration file handling and command line arguments processing.
-    ///
-    /// Try XBRL_Extract_Unit_Test --help (on Unix platforms) or XBRL_Extract_Unit_Test /help (elsewhere) for
-    /// more information.
-{
-public:
-    XBRL_Extract_Unit_Test(): _helpRequested(false)
-    {
-    }
-
-protected:
-    void initialize(Application& self) override
-    {
-        loadConfiguration(); // load default configuration files, if present
-        Application::initialize(self);
-        // add your own initialization code here
-    }
-
-    void uninitialize() override
-    {
-        // add your own uninitialization code here
-        Application::uninitialize();
-    }
-
-    void reinitialize(Application& self) override
-    {
-        Application::reinitialize(self);
-        // add your own reinitialization code here
-    }
-
-    void defineOptions(OptionSet& options) override
-    {
-        Application::defineOptions(options);
-
-        options.addOption(
-            Option("help", "h", "display help information on command line arguments")
-                .required(false)
-                .repeatable(false)
-                .callback(OptionCallback<XBRL_Extract_Unit_Test>(this, &XBRL_Extract_Unit_Test::handleHelp)));
-
-        options.addOption(
-            Option("gtest_filter", "", "select which tests to run.")
-                .required(false)
-                .repeatable(true)
-                .argument("name=value")
-                .callback(OptionCallback<XBRL_Extract_Unit_Test>(this, &XBRL_Extract_Unit_Test::handleDefine)));
-
-        /* options.addOption( */
-        /*  Option("define", "D", "define a configuration property") */
-        /*      .required(false) */
-        /*      .repeatable(true) */
-        /*      .argument("name=value") */
-        /*      .callback(OptionCallback<XBRL_Extract_Unit_Test>(this, &XBRL_Extract_Unit_Test::handleDefine))); */
-
-        /* options.addOption( */
-        /*  Option("config-file", "f", "load configuration data from a file") */
-        /*      .required(false) */
-        /*      .repeatable(true) */
-        /*      .argument("file") */
-        /*      .callback(OptionCallback<XBRL_Extract_Unit_Test>(this, &XBRL_Extract_Unit_Test::handleConfig))); */
-
-        /* options.addOption( */
-        /*  Option("bind", "b", "bind option value to test.property") */
-        /*      .required(false) */
-        /*      .repeatable(false) */
-        /*      .argument("value") */
-        /*      .binding("test.property")); */
-    }
-
-    void handleHelp(const std::string& name, const std::string& value)
-    {
-        _helpRequested = true;
-        displayHelp();
-        stopOptionsProcessing();
-    }
-
-    void handleDefine(const std::string& name, const std::string& value)
-    {
-        defineProperty(value);
-    }
-
-    void handleConfig(const std::string& name, const std::string& value)
-    {
-        loadConfiguration(value);
-    }
-
-    void displayHelp()
-    {
-        HelpFormatter helpFormatter(options());
-        helpFormatter.setCommand(commandName());
-        helpFormatter.setUsage("OPTIONS");
-        helpFormatter.setHeader("Test Driver application for ExtractEDGAR_XBRL.");
-        helpFormatter.format(std::cout);
-    }
-
-    void defineProperty(const std::string& def)
-    {
-        std::string name;
-        std::string value;
-        std::string::size_type pos = def.find('=');
-        if (pos != std::string::npos)
-        {
-            name.assign(def, 0, pos);
-            value.assign(def, pos + 1, def.length() - pos);
-        }
-        else
-        {
-            name = def;
-        }
-        config().setString(name, value);
-    }
-
-    int main(const ArgVec& args) override
-    {
-        setLogger(*THE_LOGGER);
-        if (!_helpRequested)
-        {
-            logger().information("Command line:");
-            std::ostringstream ostr;
-            for (ArgVec::const_iterator it = argv().begin(); it != argv().end(); ++it)
-            {
-                ostr << *it << ' ';
-            }
-            logger().information(ostr.str());
-            logger().information("Arguments to main():");
-            for (ArgVec::const_iterator it = args.begin(); it != args.end(); ++it)
-            {
-                logger().information(*it);
-            }
-            logger().information("Application properties:");
-            printProperties("");
-
-            //  run our tests
-
-            testing::InitGoogleMock(&G_ARGC, G_ARGV);
-            return RUN_ALL_TESTS();
-        }
-        return Application::EXIT_OK;
-    }
-
-    void printProperties(const std::string& base)
-    {
-        AbstractConfiguration::Keys keys;
-        config().keys(base, keys);
-        if (keys.empty())
-        {
-            if (config().hasProperty(base))
-            {
-                std::string msg;
-                msg.append(base);
-                msg.append(" = ");
-                msg.append(config().getString(base));
-                logger().information(msg);
-            }
-        }
-        else
-        {
-            for (AbstractConfiguration::Keys::const_iterator it = keys.begin(); it != keys.end(); ++it)
-            {
-                std::string fullKey = base;
-                if (!fullKey.empty()) fullKey += '.';
-                fullKey.append(*it);
-                printProperties(fullKey);
-            }
-        }
-    }
-
-private:
-    bool _helpRequested;
-};
 
 class IdentifyXMLFilesToUse : public Test
 {
@@ -357,19 +156,19 @@ class IdentifyXMLFilesToUse : public Test
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     FileHasXBRL filter1;
-    auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
+    auto use_file = filter1(EM::SEC_Header_fields{}, file_content_10Q);
     ASSERT_THAT(use_file, Eq(true));
 }
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITHOUT_XML);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITHOUT_XML);
 
     FileHasXBRL filter1;
-    auto use_file = filter1(EE::SEC_Header_fields{}, file_content_10Q);
+    auto use_file = filter1(EM::SEC_Header_fields{}, file_content_10Q);
     ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -379,7 +178,7 @@ class ValidateCanNavigateDocumentStructure : public Test
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
 
@@ -388,7 +187,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     SEC_Header SEC_data;
 
@@ -397,7 +196,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
 
 TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     SEC_Header SEC_data;
     SEC_data.UseData(file_content_10Q);
@@ -406,7 +205,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto result = LocateDocumentSections(file_content_10Q);
 
@@ -415,7 +214,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
 
 TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto result = LocateDocumentSections(file_content_10K);
 
@@ -429,7 +228,7 @@ class LocateFileContentToUse : public Test
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -440,7 +239,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -451,7 +250,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -462,7 +261,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -478,7 +277,7 @@ class ParseDocumentContent : public Test
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -488,7 +287,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -498,27 +297,27 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE1);
+    auto file_content_10K = LoadDataFileForUse(BAD_FILE1);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
-    ASSERT_THROW(ParseXMLContent(instance_document), ExtractException);
+    ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
 TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE3);
+    auto file_content_10K = LoadDataFileForUse(BAD_FILE3);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
-    ASSERT_THROW(ParseXMLContent(instance_document), ExtractException);
+    ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -528,7 +327,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
 
 TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -541,15 +340,9 @@ class ExtractDocumentContent : public Test
 
 };
 
-template<typename ...Ts>
-auto AllNotEmpty(Ts ...ts)
-{
-    return ((! ts.empty()) && ...);
-}
-
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -563,7 +356,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -577,7 +370,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(NO_SHARES_OUT);
+    auto file_content_10K = LoadDataFileForUse(NO_SHARES_OUT);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -592,7 +385,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -606,7 +399,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -620,7 +413,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -634,7 +427,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -649,7 +442,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -663,7 +456,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_MULTIPLE_LABEL_LINKS);
+    auto file_content_10Q = LoadDataFileForUse(FILE_MULTIPLE_LABEL_LINKS);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -677,7 +470,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -691,7 +484,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -705,7 +498,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -719,7 +512,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -733,7 +526,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -747,14 +540,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(BAD_FILE2);
+    auto file_content_10K = LoadDataFileForUse(BAD_FILE2);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -768,14 +561,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_NO_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -789,14 +582,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -810,14 +603,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -832,14 +625,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
     auto context_data = ExtractContextDefinitions(instance_xml);
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(MISSING_VALUES1_10K);
+    auto file_content_10K = LoadDataFileForUse(MISSING_VALUES1_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -853,14 +646,14 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(result == 0);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(MISSING_VALUES2_10K);
+    auto file_content_10K = LoadDataFileForUse(MISSING_VALUES2_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -874,14 +667,15 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    bool result = FindAllLabels(gaap_data, label_data);
+    int result = FindAllLabels(gaap_data, label_data);
 
-    ASSERT_TRUE(result);
+    // some values really are missing from file.
+    ASSERT_TRUE(result == 5);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_WITH_XML_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
@@ -898,7 +692,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10Q)
 {
-    auto file_content_10Q = LoadXMLDataFileForUse(FILE_SOME_NAMESPACE_10Q);
+    auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
 
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
@@ -916,7 +710,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10
 
 TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
 {
-    auto file_content_10K = LoadXMLDataFileForUse(FILE_WITH_XML_10K);
+    auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
 
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
@@ -947,10 +741,10 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             FileHasXBRL filter;
-            bool has_XML = filter(EE::SEC_Header_fields{}, file_content);
+            bool has_XML = filter(EM::SEC_Header_fields{}, file_content);
             if (has_XML)
             {
                 ++files_with_XML;
@@ -971,14 +765,14 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<sview> forms{"10-Q"};
+            std::vector<EM::sv> forms{"10-Q"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -1002,14 +796,14 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<sview> forms{"10-K"};
+            std::vector<EM::sv> forms{"10-K"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -1033,7 +827,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1063,7 +857,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -1093,14 +887,14 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadXMLDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<sview> forms{"10-Q"};
+            std::vector<EM::sv> forms{"10-Q"};
             FileHasFormType filter2{forms};
             FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
@@ -1136,45 +930,38 @@ TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
     );
     input_file.close();
     
-    std::vector<sview> forms1{"10-Q"};
+    std::vector<EM::sv> forms1{"10-Q"};
     auto qs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms1](const auto &fname) { return FormIsInFileName(forms1, fname); });
     EXPECT_EQ(qs, 114);
 
-    std::vector<sview> forms2{"10-K"};
+    std::vector<EM::sv> forms2{"10-K"};
     auto ks = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms2](const auto &fname) { return FormIsInFileName(forms2, fname); });
     EXPECT_EQ(ks, 25);
 
-    std::vector<sview> forms3{"10-K", "10-Q"};
+    std::vector<EM::sv> forms3{"10-K", "10-Q"};
     auto kqs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms3](const auto &fname) { return FormIsInFileName(forms3, fname); });
     ASSERT_EQ(kqs, 139);
 }
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  InitLogging
+ *  Description:  
+ * =====================================================================================
+ */
+void InitLogging ()
+{
+//    logging::core::get()->set_filter
+//    (
+//        logging::trivial::severity >= logging::trivial::trace
+//    );
+}		/* -----  end of function InitLogging  ----- */
 
 int main(int argc, char** argv)
 {
-    G_ARGC = argc;
-    G_ARGV = argv;
 
-    int result = 0;
+    InitLogging();
 
-    XBRL_Extract_Unit_Test the_app;
-    try
-    {
-        the_app.init(argc, argv);
-
-        THE_LOGGER = &Poco::Logger::get("TestLogger");
-        AutoPtr<Poco::Channel> pChannel(new Poco::ConsoleChannel);
-        // pChannel->setProperty("path", "/tmp/Testing.log");
-        THE_LOGGER->setChannel(pChannel);
-        THE_LOGGER->setLevel(Poco::Message::PRIO_DEBUG);
-
-        result = the_app.run();
-    }
-    catch (Poco::Exception& exc)
-    {
-        the_app.logger().log(exc);
-        result =  Application::EXIT_CONFIG;
-    }
-
-    return result;
+    InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
