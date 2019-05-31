@@ -53,11 +53,11 @@ namespace fs = std::filesystem;
 const fs::path FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
 const fs::path FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
 const fs::path FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-const fs::path EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
+const fs::path SEC_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const fs::path BAD_FILE2{"/vol_DA/SEC/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
 const fs::path NO_SHARES_OUT{"/vol_DA/SEC/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
-const fs::path MISSING_VALUES_LIST{"../ExtractEDGAR_XBRL_Test/missing_values_files.txt"};
+const fs::path MISSING_VALUES_LIST{"../Extractor_XBRL_Test/missing_values_files.txt"};
 
 using namespace testing;
 
@@ -73,7 +73,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM xbrl_extracts.edgar_filing_id");
+		    trxn.exec("DELETE FROM xbrl_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
         }
@@ -85,7 +85,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data");
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -341,7 +341,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM xbrl_extracts.edgar_filing_id");
+		    trxn.exec("DELETE FROM xbrl_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
         }
@@ -351,7 +351,7 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data");
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -362,7 +362,7 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data WHERE user_label = 'Missing Value'");
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data WHERE user_label = 'Missing Value'");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -375,11 +375,16 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_id");
+		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
 		}
+
+//        void TearDown() override
+//        {
+//            spdlog::shutdown();
+//        }
 };
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileList1)
@@ -437,7 +442,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList2)
         "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
     };
 
 	try
@@ -534,7 +539,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume_10Q)
 		"--form", "10-Q",
 		"--log-path", "/tmp/test4.log",
 		"--list", "./test_directory_list.txt",
-        "--resume-at", "/vol_DA/EDGAR/Archives/edgar/data/1326688/0001104659-09-064933.txt"
+        "--resume-at", "/vol_DA/SEC/Archives/edgar/data/1326688/0001104659-09-064933.txt"
     };
 
 	try
@@ -867,7 +872,6 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10Q)
 	catch (const std::exception& theProblem)
 	{
         spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
-		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
@@ -915,7 +919,6 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10K)
 	catch (const std::exception& theProblem)
 	{
         spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
-		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
@@ -1012,7 +1015,6 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync_10Q)
 	catch (const std::exception& theProblem)
 	{
         spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
-		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
@@ -1078,7 +1080,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters)
         "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1127,7 +1129,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
 		"--form", "10-Q",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1176,7 +1178,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters3)
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
 		"--form", "10-K,10-Q",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1226,7 +1228,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters4ShortCIKFails)
         "--log-level", "debug",
 		"--form", "10-K,10-Q",
 		"--CIK", "1541884",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1276,7 +1278,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters5)
         "--log-level", "debug",
 		"--form", "10-K,10-Q",
 		"--CIK", "0000826772,0000826774",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1323,7 +1325,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
         "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1372,7 +1374,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--max", "14",
-		"--form-dir", EDGAR_DIRECTORY.string()
+		"--form-dir", SEC_DIRECTORY.string()
 	};
 
 	try
@@ -1400,7 +1402,6 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 	catch (const std::exception& theProblem)
 	{
         spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
-		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
@@ -1450,7 +1451,20 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 // }
 
 
-int main(int argc, char** argv) {
-	testing::InitGoogleMock(&argc, argv);
+void InitLogging ()
+{
+    //    nothing to do for now.
+//    logging::core::get()->set_filter
+//    (
+//        logging::trivial::severity >= logging::trivial::trace
+//    );
+}		/* -----  end of function InitLogging  ----- */
+
+int main(int argc, char** argv)
+{
+
+    InitLogging();
+
+	InitGoogleMock(&argc, argv);
    return RUN_ALL_TESTS();
 }
