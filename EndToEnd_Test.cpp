@@ -36,27 +36,28 @@
 //  Description:
 // =====================================================================================
 
-#include "ExtractEDGAR_XBRLApp.h"
+#include "ExtractorApp.h"
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <pqxx/pqxx>
+
+#include "spdlog/spdlog.h"
 
 #include <gmock/gmock.h>
 
-#include "EDGAR_XML_FileFilter.h"
+#include "Extractor_XBRL_FileFilter.h"
+#include "Extractor_Utils.h"
 
+namespace fs = std::filesystem;
 
-const fs::path FILE_WITH_XML_10Q{"/vol_DA/EDGAR/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-const fs::path FILE_WITH_XML_10K{"/vol_DA/EDGAR/Archives/edgar/data/google-10k.txt"};
-const fs::path FILE_WITHOUT_XML{"/vol_DA/EDGAR/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-const fs::path EDGAR_DIRECTORY{"/vol_DA/EDGAR/Archives/edgar/data"};
-const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/EDGAR/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-const fs::path BAD_FILE2{"/vol_DA/EDGAR/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
-const fs::path NO_SHARES_OUT{"/vol_DA/EDGAR/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
+const fs::path FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+const fs::path FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
+const fs::path FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+const fs::path EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
+const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+const fs::path BAD_FILE2{"/vol_DA/SEC/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
+const fs::path NO_SHARES_OUT{"/vol_DA/SEC/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
 const fs::path MISSING_VALUES_LIST{"../ExtractEDGAR_XBRL_Test/missing_values_files.txt"};
-
-int G_ARGC = 0;
-char** G_ARGV = nullptr;
 
 using namespace testing;
 
@@ -67,7 +68,7 @@ class SingleFileEndToEnd : public Test
 
         void SetUp() override
         {
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    // make sure the DB is empty before we start
@@ -79,7 +80,7 @@ class SingleFileEndToEnd : public Test
 
 		int CountRows()
 		{
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    // make sure the DB is empty before we start
@@ -98,34 +99,42 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"-f", FILE_WITH_XML_10Q.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 194);
@@ -137,34 +146,42 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoNamespace_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"-f", FILE_NO_NAMESPACE_10Q.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 723);
@@ -176,34 +193,42 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"-f", NO_SHARES_OUT.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 79);
@@ -215,6 +240,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
 		"--begin-date", "2013-Oct-14",
 		"--end-date", "2015-12-31",
         "--log-level", "debug",
@@ -222,29 +248,36 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 		"-f", FILE_WITH_XML_10K.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 1984);
@@ -256,34 +289,42 @@ TEST_F(SingleFileEndToEnd, WorkWithBadFile2_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"-f", BAD_FILE2.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountRows(), 1668);
@@ -295,7 +336,7 @@ class ProcessFolderEndtoEnd : public Test
 
         void SetUp() override
         {
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    // make sure the DB is empty before we start
@@ -307,7 +348,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		int CountRows()
 		{
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data");
@@ -318,7 +359,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		int CountMissingValues()
 		{
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.edgar_filing_data WHERE user_label = 'Missing Value'");
@@ -329,7 +370,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		int CountFilings()
 		{
-		    pqxx::connection c{"dbname=edgar_extracts user=edgar_pg"};
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    // make sure the DB is empty before we start
@@ -347,33 +388,41 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList1)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 0);
@@ -385,34 +434,42 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList2)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--form-dir", EDGAR_DIRECTORY.string()
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -424,35 +481,43 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--log-path", "/tmp/test4.log",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 155);
@@ -464,6 +529,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--log-path", "/tmp/test4.log",
@@ -471,29 +537,36 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume_10Q)
         "--resume-at", "/vol_DA/EDGAR/Archives/edgar/data/1326688/0001104659-09-064933.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 31);
@@ -505,35 +578,43 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q,10-K",
 		"--log-path", "/tmp/test1.log",
 		"--list", "./list_with_bad_file.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
     // there are 45 potential filings in the list.  3 are 'bad'.
@@ -546,6 +627,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--log-path", "/tmp/test8.log",
 		"--list", MISSING_VALUES_LIST,
@@ -553,29 +635,36 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
         "-k", "4"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_TRUE(CountFilings() > 0 && CountMissingValues() == 0);
@@ -587,6 +676,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--log-path", "/tmp/test1.log",
@@ -594,29 +684,36 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
         "filename-has-form"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
     // there are 7 potential filings in the list.  1 is 'bad'.
@@ -629,6 +726,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
         "-k", "2",
@@ -637,31 +735,47 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
         
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 
-        myApp.run();    //  do it again
+        startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
     // there are 7 potential filings in the list.  1 is 'bad'.
@@ -674,34 +788,42 @@ TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        ASSERT_THROW(myApp.run(), ExtractException);
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -713,35 +835,43 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--max", "17",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 17);
@@ -753,35 +883,43 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--max", "17",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -793,35 +931,43 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"-k", "4",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 155);
@@ -833,6 +979,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync_10Q)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--max", "17",
@@ -840,29 +987,36 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync_10Q)
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 17);
@@ -874,34 +1028,42 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10K)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--list", "./test_directory_list.txt"
     };
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -913,34 +1075,42 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-K",
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -952,6 +1122,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
 		"--begin-date", "2013-Mar-1",
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
@@ -959,29 +1130,36 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 5);
@@ -993,6 +1171,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters3)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
 		"--begin-date", "2013-Mar-1",
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
@@ -1000,29 +1179,36 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters3)
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 5);
@@ -1034,6 +1220,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters4ShortCIKFails)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
 		"--begin-date", "2013-Mar-1",
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
@@ -1042,29 +1229,36 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters4ShortCIKFails)
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 0);
@@ -1076,6 +1270,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters5)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
 		"--begin-date", "2013-Mar-1",
 		"--end-date", "2013-3-31",
         "--log-level", "debug",
@@ -1084,29 +1279,36 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters5)
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	ASSERT_EQ(CountFilings(), 1);
@@ -1118,34 +1320,42 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
@@ -1158,35 +1368,43 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 	//	the test program.
 
 	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
         "--log-level", "debug",
 		"--form", "10-Q",
 		"--max", "14",
 		"--form-dir", EDGAR_DIRECTORY.string()
 	};
 
-    ExtractEDGAR_XBRLApp myApp;
 	try
 	{
-        myApp.init(tokens);
+        ExtractorApp myApp(tokens);
 
 		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
-		myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
 
-        myApp.run();
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
 	}
 
     // catch any problems trying to setup application
 
 	catch (const std::exception& theProblem)
 	{
-		// poco_fatal(myApp->logger(), theProblem.what());
-
-		myApp.logger().error(std::string("Something fundamental went wrong: ") + theProblem.what());
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
 		throw;	//	so test framework will get it too.
 	}
 	catch (...)
 	{		// handle exception: unspecified
-		myApp.logger().error("Something totally unexpected happened.");
+        spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
 	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
@@ -1205,6 +1423,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 // 	//	the test program.
 //
 // 	std::vector<std::string> tokens{"the_program",
+//        "--mode", "XBRL",
 // 		"--index-dir", "/tmp/index2",
 // 		"--form-dir", "/tmp/forms2",
 //         "--host", "https://localhost:8443",
@@ -1213,7 +1432,6 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 // 		"--replace-form-files"
 // 	};
 //
-// 	ExtractEDGAR_XBRLApp myApp;
 //     myApp.init(tokens);
 //
 // 	decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
@@ -1233,8 +1451,6 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 
 
 int main(int argc, char** argv) {
-	G_ARGC = argc;
-	G_ARGV = argv;
 	testing::InitGoogleMock(&argc, argv);
    return RUN_ALL_TESTS();
 }

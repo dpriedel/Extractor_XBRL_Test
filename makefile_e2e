@@ -46,7 +46,12 @@ SRCS1 := $(SDIR1)/EndToEnd_Test.cpp
 SDIR2 := ../Extractor_Markup/src
 SRCS2 := $(SDIR2)/ExtractorApp.cpp \
 		$(SDIR2)/Extractor_XBRL_FileFilter.cpp \
-		$(SDIR2)/SEC_Header.cpp
+		$(SDIR2)/Extractor_HTML_FileFilter.cpp \
+		$(SDIR2)/Extractor_Utils.cpp \
+		$(SDIR2)/SEC_Header.cpp \
+		$(SDIR2)/HTML_FromFile.cpp \
+		$(SDIR2)/AnchorsFromHTML.cpp \
+		$(SDIR2)/TablesFromFile.cpp
 
 SRCS := $(SRCS1) $(SRCS2)
 
@@ -63,8 +68,10 @@ CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-L$(BOOSTDIR)/lib \
 		-lboost_date_time-mt-d-x64 -lboost_iostreams-mt-d-x64 -lboost_regex-mt-d-x64 \
-		-L/usr/local/lib -lPocoFoundationd -lPocoUtild \
+		-lboost_program_options-mt-x64 \
 		-L/usr/local/lib -lgmock -lgmock_main -lgtest \
+		-lgumbo \
+		-lgq \
 		-L/usr/lib \
 		-lpqxx -lpq \
 		-lpugixml
