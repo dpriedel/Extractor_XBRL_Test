@@ -47,8 +47,6 @@
 #include <system_error>
 #include <thread>
 
-#include <boost/algorithm/string/predicate.hpp>
-
 #include <gmock/gmock.h>
 
 namespace fs = std::filesystem;
@@ -233,8 +231,8 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
-    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version")
-        && boost::algorithm::ends_with(instance_document, "</xbrl>\n"));
+    ASSERT_TRUE(instance_document.starts_with("<?xml version")
+        && instance_document.ends_with("</xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
@@ -244,8 +242,8 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
-    ASSERT_TRUE(boost::algorithm::starts_with(instance_document, "<?xml version")
-        && boost::algorithm::ends_with(instance_document, "</xbrli:xbrl>\n"));
+    ASSERT_TRUE(instance_document.starts_with("<?xml version")
+        && instance_document.ends_with("</xbrli:xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
@@ -255,8 +253,8 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
     auto document_sections_10Q{LocateDocumentSections(file_content_10Q)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
-    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version")
-        && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
+    ASSERT_TRUE(labels_document.starts_with("<?xml version")
+        && labels_document.ends_with("</link:linkbase>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
@@ -266,8 +264,8 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
     auto document_sections_10K{LocateDocumentSections(file_content_10K)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
-    ASSERT_TRUE(boost::algorithm::starts_with(labels_document, "<?xml version")
-        && boost::algorithm::ends_with(labels_document, "</link:linkbase>\n"));
+    ASSERT_TRUE(labels_document.starts_with("<?xml version")
+        && labels_document.ends_with("</link:linkbase>\n"));
 }
 
 class ParseDocumentContent : public Test
