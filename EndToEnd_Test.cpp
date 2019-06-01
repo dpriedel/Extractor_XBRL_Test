@@ -15,20 +15,20 @@
 //
 // =====================================================================================
 
-	/* This file is part of ExtractEDGAR_XBRL. */
+	/* This file is part of Extractor_Markup. */
 
-	/* CollectEDGARData is free software: you can redistribute it and/or modify */
+	/* Extractor_Markup is free software: you can redistribute it and/or modify */
 	/* it under the terms of the GNU General Public License as published by */
 	/* the Free Software Foundation, either version 3 of the License, or */
 	/* (at your option) any later version. */
 
-	/* CollectEDGARData is distributed in the hope that it will be useful, */
+	/* Extractor_Markup is distributed in the hope that it will be useful, */
 	/* but WITHOUT ANY WARRANTY; without even the implied warranty of */
 	/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the */
 	/* GNU General Public License for more details. */
 
 	/* You should have received a copy of the GNU General Public License */
-	/* along with CollectEDGARData.  If not, see <http://www.gnu.org/licenses/>. */
+	/* along with Extractor_Markup.  If not, see <http://www.gnu.org/licenses/>. */
 
 
 // =====================================================================================
@@ -44,7 +44,6 @@
 #include "spdlog/spdlog.h"
 
 #include <gmock/gmock.h>
-
 #include "Extractor_XBRL_FileFilter.h"
 #include "Extractor_Utils.h"
 
@@ -55,12 +54,14 @@ const fs::path FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt
 const fs::path FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
 const fs::path SEC_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
 const fs::path FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-const fs::path BAD_FILE2{"/vol_DA/SEC/Edgar_forms/1000180/10-K/0001000180-16-000068.txt"};
-const fs::path NO_SHARES_OUT{"/vol_DA/SEC/Edgar_forms/1023453/10-K/0001144204-12-017368.txt"};
+const fs::path BAD_FILE2{"/vol_DA/SEC/SEC_forms/1000180/10-K/0001000180-16-000068.txt"};
+const fs::path NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/1023453/10-K/0001144204-12-017368.txt"};
 const fs::path MISSING_VALUES_LIST{"../Extractor_XBRL_Test/missing_values_files.txt"};
+const fs::path MISSING_VALUES_LIST_SHORT{"../Extractor_XBRL_Test/missing_values_files_short.txt"};
 
 using namespace testing;
 
+std::shared_ptr<spdlog::logger> DEFAULT_LOGGER;
 
 class SingleFileEndToEnd : public Test
 {
@@ -68,6 +69,8 @@ class SingleFileEndToEnd : public Test
 
         void SetUp() override
         {
+            spdlog::set_default_logger(DEFAULT_LOGGER);
+
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
@@ -336,6 +339,8 @@ class ProcessFolderEndtoEnd : public Test
 
         void SetUp() override
         {
+            spdlog::set_default_logger(DEFAULT_LOGGER);
+
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
@@ -635,7 +640,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
         "--mode", "XBRL",
         "--log-level", "debug",
 		"--log-path", "/tmp/test8.log",
-		"--list", MISSING_VALUES_LIST,
+//		"--list", MISSING_VALUES_LIST,
+		"--list", MISSING_VALUES_LIST_SHORT,
 		"--form", "10-K",
         "-k", "4"
     };
@@ -672,7 +678,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
         spdlog::error("Something totally unexpected happened.");
 		throw;
 	}
-	ASSERT_TRUE(CountFilings() > 0 && CountMissingValues() == 0);
+	ASSERT_TRUE(CountFilings() > 0 && CountMissingValues() == 181);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
@@ -767,7 +773,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
         }
         else
         {
-            std::cout << "Problems starting program.  No processing done.\n";
+            std::cout << "Problems restarting program.  No repeat processing done.\n";
         }
 	}
 
@@ -1453,6 +1459,8 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 
 void InitLogging ()
 {
+    DEFAULT_LOGGER = spdlog::default_logger();
+
     //    nothing to do for now.
 //    logging::core::get()->set_filter
 //    (
