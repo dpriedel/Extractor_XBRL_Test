@@ -68,13 +68,13 @@ constexpr const char* EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
 constexpr const char* FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
 constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
-constexpr const char* BAD_FILE1{"/vol_DA/SEC/SEC_forms/1000228/10-K/0001000228-11-000014.txt"};
-constexpr const char* BAD_FILE2{"/vol_DA/SEC/SEC_forms/1000180/10-K/0001000180-16-000068.txt"};
-constexpr const char* BAD_FILE3{"/vol_DA/SEC/SEC_forms/1000697/10-K/0000950123-11-018381.txt"};
-constexpr const char* NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/1023453/10-K/0001144204-12-017368.txt"};
+constexpr const char* BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/0001000228-11-000014.txt"};
+constexpr const char* BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
+constexpr const char* BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
+constexpr const char* NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
 constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
-constexpr const char* MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/1004980/10-K/0001193125-12-065537.txt"};
-constexpr const char* MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/1002638/10-K/0001193125-09-179839.txt"};
+constexpr const char* MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
+constexpr const char* MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -739,7 +739,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             FileHasXBRL filter;
             bool has_XML = filter(EM::SEC_Header_fields{}, file_content);
@@ -763,14 +763,14 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<EM::sv> forms{"10-Q"};
+            std::vector<std::string> forms{"10-Q"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -794,14 +794,14 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<EM::sv> forms{"10-K"};
+            std::vector<std::string> forms{"10-K"};
             FileHasFormType filter2{forms};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
@@ -825,7 +825,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -855,7 +855,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -885,14 +885,14 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content = LoadDataFileForUse(dir_ent.path().string().c_str());
+            auto file_content = LoadDataFileForUse(dir_ent.path().c_str());
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            std::vector<EM::sv> forms{"10-Q"};
+            std::vector<std::string> forms{"10-Q"};
             FileHasFormType filter2{forms};
             FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
@@ -928,15 +928,15 @@ TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
     );
     input_file.close();
     
-    std::vector<EM::sv> forms1{"10-Q"};
+    std::vector<std::string> forms1{"10-Q"};
     auto qs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms1](const auto &fname) { return FormIsInFileName(forms1, fname); });
     EXPECT_EQ(qs, 114);
 
-    std::vector<EM::sv> forms2{"10-K"};
+    std::vector<std::string> forms2{"10-K"};
     auto ks = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms2](const auto &fname) { return FormIsInFileName(forms2, fname); });
     EXPECT_EQ(ks, 25);
 
-    std::vector<EM::sv> forms3{"10-K", "10-Q"};
+    std::vector<std::string> forms3{"10-K", "10-Q"};
     auto kqs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms3](const auto &fname) { return FormIsInFileName(forms3, fname); });
     ASSERT_EQ(kqs, 139);
 }
