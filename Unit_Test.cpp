@@ -156,8 +156,9 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
 
+    EM::FileContent file_content{file_content_10Q};
     FileHasXBRL filter1;
-    auto use_file = filter1(EM::SEC_Header_fields{}, file_content_10Q);
+    auto use_file = filter1(EM::SEC_Header_fields{}, file_content);
     ASSERT_THAT(use_file, Eq(true));
 }
 
