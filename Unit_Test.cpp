@@ -61,20 +61,20 @@ using namespace testing;
 
 // some specific files for Testing.
 
-constexpr const char* FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-constexpr const char* FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
-constexpr const char* FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-constexpr const char* EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
-constexpr const char* FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-constexpr const char* FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
-constexpr const char* FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
-constexpr const char* BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/0001000228-11-000014.txt"};
-constexpr const char* BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
-constexpr const char* BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
-constexpr const char* NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
-constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
-constexpr const char* MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
-constexpr const char* MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
+constexpr EM::FileName FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+constexpr EM::FileName FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
+constexpr EM::FileName FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+constexpr EM::FileName EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
+constexpr EM::FileName FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+constexpr EM::FileName FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
+constexpr EM::FileName FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
+constexpr EM::FileName BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/0001000228-11-000014.txt"};
+constexpr EM::FileName BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
+constexpr EM::FileName BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
+constexpr EM::FileName NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
+const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
+constexpr EM::FileName MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
+constexpr EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -156,9 +156,10 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
+    auto sections = LocateDocumentSections(file_content);
 
     FileHasXBRL filter1;
-    auto use_file = filter1(EM::SEC_Header_fields{}, file_content);
+    auto use_file = filter1(EM::SEC_Header_fields{}, sections);
     ASSERT_THAT(use_file, Eq(true));
 }
 
@@ -166,9 +167,10 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITHOUT_XML);
     EM::FileContent file_content{file_content_10Q};
+    auto sections = LocateDocumentSections(file_content);
 
     FileHasXBRL filter1;
-    auto use_file = filter1(EM::SEC_Header_fields{}, file_content);
+    auto use_file = filter1(EM::SEC_Header_fields{}, sections);
     ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -780,11 +782,12 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             FileHasXBRL filter;
-            bool has_XML = filter(EM::SEC_Header_fields{}, file_content);
+            bool has_XML = filter(EM::SEC_Header_fields{}, sections);
             if (has_XML)
             {
                 ++files_with_XML;
@@ -792,7 +795,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_XML, 159);
 }
@@ -805,8 +808,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -816,7 +820,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
             std::vector<std::string> forms{"10-Q"};
             FileHasFormType filter2{forms};
 
-            bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
+            bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
             {
                 ++files_with_form;
@@ -824,7 +828,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 157);
 }
@@ -837,8 +841,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -848,7 +853,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
             std::vector<std::string> forms{"10-K"};
             FileHasFormType filter2{forms};
 
-            bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
+            bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
             {
                 ++files_with_form;
@@ -856,7 +861,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 1);
 }
@@ -869,8 +874,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -879,7 +885,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
             FileHasXBRL filter1;
             FileIsWithinDateRange filter2{bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30")};
 
-            bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
+            bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
             {
                 ++files_with_form;
@@ -887,7 +893,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 151);
 }
@@ -900,8 +906,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -910,7 +917,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
             FileHasXBRL filter1;
             FileIsWithinDateRange filter2{bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30")};
 
-            bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2);
+            bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
             {
                 ++files_with_form;
@@ -918,7 +925,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 0);
 }
@@ -931,8 +938,9 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
     {
         if (dir_ent.status().type() == fs::file_type::regular)
         {
-            auto file_content_dir = LoadDataFileForUse(dir_ent.path().c_str());
+            auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
+            auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -943,7 +951,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
             FileHasFormType filter2{forms};
             FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
 
-            bool has_form = ApplyFilters(SEC_data.GetFields(), file_content, filter1, filter2, filter3);
+            bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2, filter3);
             if (has_form)
             {
                 ++files_with_form;
@@ -951,7 +959,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
         }
     });
 
-    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY), fs::recursive_directory_iterator(), test_file);
+    std::for_each(fs::recursive_directory_iterator(EDGAR_DIRECTORY.get()), fs::recursive_directory_iterator(), test_file);
 
     ASSERT_EQ(files_with_form, 5);
 }
