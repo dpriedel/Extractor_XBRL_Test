@@ -72,7 +72,7 @@ constexpr EM::FileName BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/00010002
 constexpr EM::FileName BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
 constexpr EM::FileName BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
 constexpr EM::FileName NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
-const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
+constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
 constexpr EM::FileName MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
 constexpr EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
 
@@ -984,15 +984,15 @@ TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
     input_file.close();
     
     std::vector<std::string> forms1{"10-Q"};
-    auto qs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms1](const auto &fname) { return FormIsInFileName(forms1, fname); });
+    auto qs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms1](const auto &fname) { return FormIsInFileName(forms1, EM::FileName{fname}); });
     EXPECT_EQ(qs, 114);
 
     std::vector<std::string> forms2{"10-K"};
-    auto ks = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms2](const auto &fname) { return FormIsInFileName(forms2, fname); });
+    auto ks = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms2](const auto &fname) { return FormIsInFileName(forms2, EM::FileName{fname}); });
     EXPECT_EQ(ks, 25);
 
     std::vector<std::string> forms3{"10-K", "10-Q"};
-    auto kqs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms3](const auto &fname) { return FormIsInFileName(forms3, fname); });
+    auto kqs = std::count_if(std::begin(list_of_files_to_process), std::end(list_of_files_to_process), [&forms3](const auto &fname) { return FormIsInFileName(forms3, EM::FileName{fname}); });
     ASSERT_EQ(kqs, 139);
 }
 
