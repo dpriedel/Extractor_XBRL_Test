@@ -61,20 +61,20 @@ using namespace testing;
 
 // some specific files for Testing.
 
-constexpr EM::FileName FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
-constexpr EM::FileName FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
-constexpr EM::FileName FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
-constexpr EM::FileName EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
-constexpr EM::FileName FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
-constexpr EM::FileName FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
-constexpr EM::FileName FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
-constexpr EM::FileName BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/0001000228-11-000014.txt"};
-constexpr EM::FileName BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
-constexpr EM::FileName BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
-constexpr EM::FileName NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
-constexpr const char* TEST_FILE_LIST{"./list_with_bad_file.txt"};
-constexpr EM::FileName MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
-constexpr EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
+const EM::FileName FILE_WITH_XML_10Q{"/vol_DA/SEC/Archives/edgar/data/1460602/0001062993-13-005017.txt"};
+const EM::FileName FILE_WITH_XML_10K{"/vol_DA/SEC/Archives/edgar/data/google-10k.txt"};
+const EM::FileName FILE_WITHOUT_XML{"/vol_DA/SEC/Archives/edgar/data/841360/0001086380-13-000030.txt"};
+const EM::FileName EDGAR_DIRECTORY{"/vol_DA/SEC/Archives/edgar/data"};
+const EM::FileName FILE_NO_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+const EM::FileName FILE_SOME_NAMESPACE_10Q{"/vol_DA/SEC/Archives/edgar/data/1552979/0001214782-13-000386.txt"};
+const EM::FileName FILE_MULTIPLE_LABEL_LINKS{"/vol_DA/SEC/Archives/edgar/data/1540334/0001078782-13-002015.txt"};
+const EM::FileName BAD_FILE1{"/vol_DA/SEC/SEC_forms/0001000228/10-K/0001000228-11-000014.txt"};
+const EM::FileName BAD_FILE2{"/vol_DA/SEC/SEC_forms/0001000180/10-K/0001000180-16-000068.txt"};
+const EM::FileName BAD_FILE3{"/vol_DA/SEC/SEC_forms/0001000697/10-K/0000950123-11-018381.txt"};
+const EM::FileName NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-12-017368.txt"};
+const EM::FileName TEST_FILE_LIST{"./list_with_bad_file.txt"};
+const EM::FileName MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
+const EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001002638/10-K/0001193125-09-179839.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -156,7 +156,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
-    auto sections = LocateDocumentSections(file_content);
+    const auto sections = LocateDocumentSections(file_content);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EM::SEC_Header_fields{}, sections);
@@ -167,7 +167,7 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITHOUT_XML);
     EM::FileContent file_content{file_content_10Q};
-    auto sections = LocateDocumentSections(file_content);
+    const auto sections = LocateDocumentSections(file_content);
 
     FileHasXBRL filter1;
     auto use_file = filter1(EM::SEC_Header_fields{}, sections);
@@ -213,7 +213,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto result = LocateDocumentSections(file_content);
+    const auto result = LocateDocumentSections(file_content);
 
     ASSERT_EQ(result.size(), 52);
 }
@@ -223,7 +223,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto result = LocateDocumentSections(file_content);
+    const auto result = LocateDocumentSections(file_content);
 
     ASSERT_EQ(result.size(), 119);
 }
@@ -238,11 +238,11 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
-    ASSERT_TRUE(instance_document->starts_with("<?xml version")
-        && instance_document->ends_with("</xbrl>\n"));
+    ASSERT_TRUE(instance_document.get().starts_with("<?xml version")
+        && instance_document.get().ends_with("</xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
@@ -250,11 +250,11 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
-    ASSERT_TRUE(instance_document->starts_with("<?xml version")
-        && instance_document->ends_with("</xbrli:xbrl>\n"));
+    ASSERT_TRUE(instance_document.get().starts_with("<?xml version")
+        && instance_document.get().ends_with("</xbrli:xbrl>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
@@ -262,11 +262,11 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
-    ASSERT_TRUE(labels_document->starts_with("<?xml version")
-        && labels_document->ends_with("</link:linkbase>\n"));
+    ASSERT_TRUE(labels_document.get().starts_with("<?xml version")
+        && labels_document.get().ends_with("</link:linkbase>\n"));
 }
 
 TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
@@ -274,11 +274,11 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
-    ASSERT_TRUE(labels_document->starts_with("<?xml version")
-        && labels_document->ends_with("</link:linkbase>\n"));
+    ASSERT_TRUE(labels_document.get().starts_with("<?xml version")
+        && labels_document.get().ends_with("</link:linkbase>\n"));
 }
 
 class ParseDocumentContent : public Test
@@ -291,7 +291,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
@@ -302,7 +302,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
@@ -313,7 +313,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
     auto file_content_10K = LoadDataFileForUse(BAD_FILE1);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
@@ -324,7 +324,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
     auto file_content_10K = LoadDataFileForUse(BAD_FILE3);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
@@ -335,7 +335,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     ASSERT_NO_THROW(ParseXMLContent(labels_document));
@@ -346,7 +346,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     ASSERT_NO_THROW(ParseXMLContent(labels_document));
@@ -362,7 +362,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -377,7 +377,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -392,7 +392,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
     auto file_content_10K = LoadDataFileForUse(NO_SHARES_OUT);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -408,7 +408,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -423,7 +423,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -438,7 +438,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -453,7 +453,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -469,7 +469,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -484,7 +484,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_MULTIPLE_LABEL_LINKS);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -499,7 +499,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -514,7 +514,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -529,7 +529,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -544,7 +544,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -559,7 +559,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -581,7 +581,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
     auto file_content_10K = LoadDataFileForUse(BAD_FILE2);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -603,7 +603,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -625,7 +625,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -647,7 +647,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -670,7 +670,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_
     auto file_content_10K = LoadDataFileForUse(MISSING_VALUES1_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -692,7 +692,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2
     auto file_content_10K = LoadDataFileForUse(MISSING_VALUES2_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto labels_document = LocateLabelDocument(document_sections_10K);
     auto labels_xml = ParseXMLContent(labels_document);
@@ -715,7 +715,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -734,7 +734,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
 
-    auto document_sections_10Q{LocateDocumentSections(file_content)};
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -753,7 +753,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
 
-    auto document_sections_10K{LocateDocumentSections(file_content)};
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
 
     auto instance_document = LocateInstanceDocument(document_sections_10K);
     auto instance_xml = ParseXMLContent(instance_document);
@@ -784,7 +784,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             FileHasXBRL filter;
             bool has_XML = filter(EM::SEC_Header_fields{}, sections);
@@ -810,7 +810,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10Q)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -843,7 +843,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAll10K)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -876,7 +876,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -908,7 +908,7 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -940,7 +940,7 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
         {
             auto file_content_dir = LoadDataFileForUse(EM::FileName{dir_ent.path().c_str()});
             EM::FileContent file_content{file_content_dir};
-            auto sections = LocateDocumentSections(file_content);
+            const auto sections = LocateDocumentSections(file_content);
 
             SEC_Header SEC_data;
             SEC_data.UseData(file_content);
@@ -968,7 +968,7 @@ TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
 {
     std::vector<std::string> list_of_files_to_process;
 
-    std::ifstream input_file{TEST_FILE_LIST};
+    std::ifstream input_file{TEST_FILE_LIST.get().data()};
 
     // Tell the stream to use our facet, so only '\n' is treated as a space.
 
