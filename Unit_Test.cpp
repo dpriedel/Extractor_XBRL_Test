@@ -968,7 +968,7 @@ TEST_F(ValidateFolderFilters, VerifyFindFormsInFileNameList)
 {
     std::vector<std::string> list_of_files_to_process;
 
-    std::ifstream input_file{TEST_FILE_LIST.get().data()};
+    std::ifstream input_file{TEST_FILE_LIST.get()};
 
     // Tell the stream to use our facet, so only '\n' is treated as a space.
 
