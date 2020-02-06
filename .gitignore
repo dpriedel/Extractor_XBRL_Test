@@ -13,6 +13,8 @@ Unit_Test
 
 
 .vscode
+.ccls-cache
+.gdb_history
 
 # some documentation
 
