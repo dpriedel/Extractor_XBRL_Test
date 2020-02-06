@@ -383,7 +383,7 @@ class ProcessFolderEndtoEnd : public Test
 //        }
 };
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList1)
+TEST_F(ProcessFolderEndtoEnd, TestNoInputFiles)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
