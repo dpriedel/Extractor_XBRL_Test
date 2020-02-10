@@ -77,7 +77,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM xbrl_extracts.sec_filing_id");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
         }
@@ -89,7 +89,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -337,7 +337,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM xbrl_extracts.sec_filing_id");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
         }
@@ -347,7 +347,7 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -358,7 +358,7 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_data WHERE user_label = 'Missing Value'");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data WHERE label = 'Missing Value'");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
@@ -371,7 +371,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM xbrl_extracts.sec_filing_id");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
