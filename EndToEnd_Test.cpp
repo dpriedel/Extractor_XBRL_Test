@@ -77,7 +77,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
 			c.disconnect();
         }
@@ -337,7 +337,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
 			c.disconnect();
         }
