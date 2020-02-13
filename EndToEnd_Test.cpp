@@ -142,7 +142,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
 	ASSERT_EQ(CountRows(), 194);
 }
 
-TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoNamespace_10Q)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -371,7 +371,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
 			c.disconnect();
 			return row[0].as<int>();
