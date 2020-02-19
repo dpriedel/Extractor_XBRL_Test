@@ -97,7 +97,7 @@ class SingleFileEndToEnd : public Test
 };
 
 
-TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10Q)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -187,7 +187,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
 	ASSERT_EQ(CountRows(), 723);
 }
 
-TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt_10K)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -232,7 +232,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt_10K)
 	ASSERT_EQ(CountRows(), 79);
 }
 
-TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
+TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -279,7 +279,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_10K)
 	ASSERT_EQ(CountRows(), 1984);
 }
 
-TEST_F(SingleFileEndToEnd, WorkWithBadFile2_10K)
+TEST_F(SingleFileEndToEnd, WorkWithBadFile210K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -472,7 +472,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList2)
 	ASSERT_EQ(CountFilings(), 1);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -518,7 +518,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10Q)
 	ASSERT_EQ(CountFilings(), 155);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume_10Q)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -786,7 +786,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 	ASSERT_EQ(CountFilings(), 6);
 }
 
-TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile_10K)
+TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -831,7 +831,7 @@ TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile_10K)
 	ASSERT_EQ(CountFilings(), 1);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10Q)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -877,7 +877,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10Q)
 	ASSERT_EQ(CountFilings(), 17);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10K)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -923,7 +923,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit_10K)
 	ASSERT_EQ(CountFilings(), 1);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async_10Q)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -969,7 +969,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async_10Q)
 	ASSERT_EQ(CountFilings(), 155);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync_10Q)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -1016,7 +1016,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync_10Q)
 	ASSERT_EQ(CountFilings(), 17);
 }
 
-TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3_10K)
+TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.

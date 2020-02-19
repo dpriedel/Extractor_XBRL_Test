@@ -178,7 +178,7 @@ class ValidateCanNavigateDocumentStructure : public Test
 {
 };
 
-TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
+TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -188,7 +188,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10Q)
     ASSERT_NO_THROW(SEC_data.UseData(file_content));
 }
 
-TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
+TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -198,7 +198,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindSECHeader_10K)
     ASSERT_NO_THROW(SEC_data.UseData(file_content));
 }
 
-TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
+TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -208,7 +208,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, SECHeaderFindAllFields_10Q)
     ASSERT_NO_THROW(SEC_data.ExtractHeaderFields());
 }
 
-TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
+TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -218,7 +218,7 @@ TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10Q)
     ASSERT_EQ(result.size(), 52);
 }
 
-TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections_10K)
+TEST_F(ValidateCanNavigateDocumentStructure, FindsAllDocumentSections10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -233,7 +233,7 @@ class LocateFileContentToUse : public Test
 
 };
 
-TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
+TEST_F(LocateFileContentToUse, FindInstanceDocument10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -245,7 +245,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10Q)
         && instance_document.get().ends_with("</xbrl>\n"));
 }
 
-TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
+TEST_F(LocateFileContentToUse, FindInstanceDocument10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -257,7 +257,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument_10K)
         && instance_document.get().ends_with("</xbrli:xbrl>\n"));
 }
 
-TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
+TEST_F(LocateFileContentToUse, FindLabelDocument10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -269,7 +269,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument_10Q)
         && labels_document.get().ends_with("</link:linkbase>\n"));
 }
 
-TEST_F(LocateFileContentToUse, FindLabelDocument_10K)
+TEST_F(LocateFileContentToUse, FindLabelDocument10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -286,7 +286,7 @@ class ParseDocumentContent : public Test
 
 };
 
-TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
+TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -297,7 +297,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10Q)
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
-TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
+TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -308,7 +308,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument_10K)
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
-TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
+TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows10K)
 {
     auto file_content_10K = LoadDataFileForUse(BAD_FILE1);
     EM::FileContent file_content{file_content_10K};
@@ -319,7 +319,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows_10K)
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
-TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
+TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows210K)
 {
     auto file_content_10K = LoadDataFileForUse(BAD_FILE3);
     EM::FileContent file_content{file_content_10K};
@@ -330,7 +330,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows2_10K)
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
-TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
+TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -341,7 +341,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10Q)
     ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
-TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument_10K)
+TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -357,7 +357,7 @@ class ExtractDocumentContent : public Test
 
 };
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -372,7 +372,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10Q)
     ASSERT_TRUE(AllNotEmpty(a, b, c, d));
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -387,7 +387,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData_10K)
     ASSERT_TRUE(AllNotEmpty(a, b, c, d));
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut10K)
 {
     auto file_content_10K = LoadDataFileForUse(NO_SHARES_OUT);
     EM::FileContent file_content{file_content_10K};
@@ -403,7 +403,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut_10K)
     ASSERT_TRUE(AllNotEmpty(b, c, d));
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -418,7 +418,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10Q)
     ASSERT_EQ(gaap_data.size(), 194);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -433,7 +433,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace_10Q)
     ASSERT_EQ(gaap_data.size(), 723);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -448,7 +448,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP_10K)
     ASSERT_EQ(gaap_data.size(), 1984);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabels10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -464,7 +464,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10Q)
     ASSERT_EQ(label_data.size(), 125);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -479,7 +479,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace_10Q)
     ASSERT_EQ(label_data.size(), 352);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_MULTIPLE_LABEL_LINKS);
     EM::FileContent file_content{file_content_10Q};
@@ -494,7 +494,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks_10Q)
     ASSERT_EQ(label_data.size(), 158);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractLabels10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -509,7 +509,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels_10K)
     ASSERT_EQ(label_data.size(), 746);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractContexts10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -524,7 +524,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10Q)
     ASSERT_EQ(context_data.size(), 37);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -539,7 +539,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace_10Q)
     ASSERT_EQ(context_data.size(), 12);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
+TEST_F(ExtractDocumentContent, VerifyCanExtractContexts10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -554,7 +554,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts_10K)
     ASSERT_EQ(context_data.size(), 492);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -576,7 +576,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10Q)
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile210K)
 {
     auto file_content_10K = LoadDataFileForUse(BAD_FILE2);
     EM::FileContent file_content{file_content_10K};
@@ -598,7 +598,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile2_10K)
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_NO_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -620,7 +620,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace_10
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -642,7 +642,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace_
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
@@ -665,7 +665,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel_10K)
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues10K)
 {
     auto file_content_10K = LoadDataFileForUse(MISSING_VALUES1_10K);
     EM::FileContent file_content{file_content_10K};
@@ -687,7 +687,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues_
     ASSERT_TRUE(result == 0);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues210K)
 {
     auto file_content_10K = LoadDataFileForUse(MISSING_VALUES2_10K);
     EM::FileContent file_content{file_content_10K};
@@ -710,7 +710,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues2
     ASSERT_TRUE(result == 5);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_WITH_XML_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -729,7 +729,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10Q)
     ASSERT_TRUE(result);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10Q)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(FILE_SOME_NAMESPACE_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -748,7 +748,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace_10
     ASSERT_TRUE(result);
 }
 
-TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext_10K)
+TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext10K)
 {
     auto file_content_10K = LoadDataFileForUse(FILE_WITH_XML_10K);
     EM::FileContent file_content{file_content_10K};
