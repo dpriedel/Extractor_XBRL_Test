@@ -890,7 +890,8 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
             SEC_data.ExtractHeaderFields();
 
             FileHasXBRL filter1;
-            FileIsWithinDateRange filter2{bg::from_simple_string("2013-Jan-1"), bg::from_simple_string("2013-09-30")};
+            using namespace date;
+            FileIsWithinDateRange filter2{year_month_day{2013_y/January/1}, year_month_day{2013_y/9/30}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
@@ -921,8 +922,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
+            using namespace date;
             FileHasXBRL filter1;
-            FileIsWithinDateRange filter2{bg::from_simple_string("2015-Jan-1"), bg::from_simple_string("2015-09-30")};
+            FileIsWithinDateRange filter2{year_month_day{2015_y/January/1}, year_month_day{2015_y/9/30}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
@@ -953,10 +955,11 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
+            using namespace date;
             FileHasXBRL filter1;
             std::vector<std::string> forms{"10-Q"};
             FileHasFormType filter2{forms};
-            FileIsWithinDateRange filter3{bg::from_simple_string("2013-03-1"), bg::from_simple_string("2013-03-31")};
+            FileIsWithinDateRange filter3{year_month_day{2013_y/3/1}, year_month_day{2013_y/3/31}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2, filter3);
             if (has_form)
