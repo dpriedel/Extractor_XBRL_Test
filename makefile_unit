@@ -70,6 +70,7 @@ CFG_LIB := -lpthread \
 		-L/usr/local/lib \
 		-lfmt \
 		-lspdlog \
+		-ltz \
 		-L/usr/lib \
 		-lpugixml \
 		-lpqxx -lpq
