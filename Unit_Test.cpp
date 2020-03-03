@@ -49,6 +49,11 @@
 
 #include <gmock/gmock.h>
 
+#include <range/v3/action/sort.hpp>
+#include <range/v3/algorithm/equal.hpp>
+#include <range/v3/algorithm/set_algorithm.hpp>
+#include <range/v3/iterator.hpp>
+
 namespace fs = std::filesystem;
 
 using namespace testing;
@@ -76,6 +81,7 @@ const EM::FileName TEST_FILE_LIST{"./list_with_bad_file.txt"};
 const EM::FileName MISSING_VALUES1_10K{"/vol_DA/SEC/SEC_forms/0001004980/10-K/0001193125-12-065537.txt"};
 const EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001005210/10-Q_A/0001193125-12-335145.txt"};
 
+const EM::FileName ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14-043453.txt"};
 const EM::FileName AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -148,6 +154,29 @@ bool FindAllContexts(const std::vector<EM::GAAP_Data>& gaap_data, const EM::Cont
     return all_good;
 }
 
+// Function to compare 2 ranges and print differences
+
+void PrintRangeDifferences(const std::vector<EM::GAAP_Data>& rng1, const std::vector<EM::GAAP_Data>& rng2)
+{
+    std::cout << "Items in first range: " << rng1.size() << '\n';
+    std::vector<EM::GAAP_Data> in_rng1_only;
+    auto x = ranges::set_difference(rng1, rng2,
+            ranges::back_inserter(in_rng1_only),
+            [](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; });
+
+    std::cout << "\n\nItems missing from amended form.\n\n";
+    ranges::for_each(in_rng1_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
+
+    std::cout << "Items in second range: " << rng2.size() << '\n';
+    std::vector<EM::GAAP_Data> in_rng2_only;
+    auto y = ranges::set_difference(rng2, rng1,
+            ranges::back_inserter(in_rng2_only),
+            [](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; });
+
+    std::cout << "\n\nItems missing from original form.\n\n";
+    ranges::for_each(in_rng2_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
+
+}
 
 class IdentifyXMLFilesToUse : public Test
 {
@@ -1011,7 +1040,7 @@ class ProcessAmendedForms : public Test
 
 };
 
-TEST_F(ProcessAmendedForms, Form10Q)
+TEST_F(ProcessAmendedForms, CanReadAmended10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
     EM::FileContent file_content{file_content_10Q};
@@ -1031,6 +1060,53 @@ TEST_F(ProcessAmendedForms, Form10Q)
     int result = FindAllLabels(gaap_data, label_data);
 
     ASSERT_TRUE(result == 0);
+}
+
+TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
+{
+    auto orig_file_content_10Q = LoadDataFileForUse(ORIGINAL_10Q);
+    EM::FileContent orig_file_content{orig_file_content_10Q};
+
+    const auto orig_document_sections_10Q{LocateDocumentSections(orig_file_content)};
+
+    auto orig_labels_document = LocateLabelDocument(orig_document_sections_10Q);
+    auto orig_labels_xml = ParseXMLContent(orig_labels_document);
+
+    auto orig_label_data = ExtractFieldLabels(orig_labels_xml);
+
+    auto orig_instance_document = LocateInstanceDocument(orig_document_sections_10Q);
+    auto orig_instance_xml = ParseXMLContent(orig_instance_document);
+
+    auto orig_gaap_data = ExtractGAAPFields(orig_instance_xml);
+    orig_gaap_data = std::move(orig_gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
+
+    int orig_result = FindAllLabels(orig_gaap_data, orig_label_data);
+
+    EXPECT_TRUE(orig_result == 0);
+
+    auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
+    EM::FileContent file_content{file_content_10Q};
+
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
+
+    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_xml = ParseXMLContent(labels_document);
+
+    auto label_data = ExtractFieldLabels(labels_xml);
+
+    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_xml = ParseXMLContent(instance_document);
+
+    auto gaap_data = ExtractGAAPFields(instance_xml);
+    gaap_data = std::move(gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
+
+    int result = FindAllLabels(gaap_data, label_data);
+
+    EXPECT_TRUE(result == 0);
+
+    ASSERT_FALSE(ranges::equal(orig_gaap_data, gaap_data, [](const auto& lhs, const auto& rhs) { return lhs.label == rhs.label && lhs.value == rhs.value; }));
+
+    PrintRangeDifferences(orig_gaap_data, gaap_data);
 }
 
 
