@@ -1040,6 +1040,58 @@ class ProcessAmendedForms : public Test
 
 };
 
+TEST_F(ProcessAmendedForms, VerifyFormTypeEditsWorkWithAmendedFiles)
+{
+    auto file_content_10Q = LoadDataFileForUse(ORIGINAL_10Q);
+    EM::FileContent file_content{file_content_10Q};
+    const auto sections = LocateDocumentSections(file_content);
+
+    SEC_Header SEC_data;
+    SEC_data.UseData(file_content);
+    SEC_data.ExtractHeaderFields();
+
+    std::vector<std::string> forms{"10-Q"};
+    FileHasFormType filter1{forms};
+
+    bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1);
+    EXPECT_EQ(has_form, true);
+
+    // NOTE: code internally uses '_' instead of '/' so we
+    // need to code it that way here.
+
+    std::vector<std::string> forms_a{"10-Q_A"};
+    FileHasFormType filter2{forms_a};
+
+    has_form = ApplyFilters(SEC_data.GetFields(), sections, filter2);
+
+    EXPECT_EQ(has_form, false);
+
+    auto file_content_10Q_a = LoadDataFileForUse(AMENDED_10Q);
+    EM::FileContent file_content_a{file_content_10Q_a};
+    const auto sections_a = LocateDocumentSections(file_content_a);
+
+    SEC_Header SEC_data_a;
+    SEC_data_a.UseData(file_content_a);
+    SEC_data_a.ExtractHeaderFields();
+
+    has_form = ApplyFilters(SEC_data_a.GetFields(), sections_a, filter1);
+    EXPECT_EQ(has_form, false);
+
+    has_form = ApplyFilters(SEC_data_a.GetFields(), sections_a, filter2);
+
+    EXPECT_EQ(has_form, true);
+
+    std::vector<std::string> forms_b{"10-Q", "10-Q_A"};
+    FileHasFormType filter3{forms_b};
+
+    has_form = ApplyFilters(SEC_data.GetFields(), sections, filter3);
+    EXPECT_EQ(has_form, true);
+
+    has_form = ApplyFilters(SEC_data_a.GetFields(), sections_a, filter3);
+
+    ASSERT_EQ(has_form, true);
+}
+
 TEST_F(ProcessAmendedForms, CanReadAmended10Q)
 {
     auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
