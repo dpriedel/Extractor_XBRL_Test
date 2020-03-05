@@ -60,6 +60,9 @@ const fs::path NO_SHARES_OUT{"/vol_DA/SEC/SEC_forms/0001023453/10-K/0001144204-1
 const fs::path MISSING_VALUES_LIST{"../Extractor_XBRL_Test/missing_values_files.txt"};
 const fs::path MISSING_VALUES_LIST_SHORT{"../Extractor_XBRL_Test/missing_values_files_short.txt"};
 
+const fs::path ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14-043453.txt"};
+const fs::path AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
+
 using namespace testing;
 
 std::shared_ptr<spdlog::logger> DEFAULT_LOGGER;
@@ -79,7 +82,6 @@ class SingleFileEndToEnd : public Test
 
 		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
-			c.disconnect();
         }
 
 		int CountRows()
@@ -91,7 +93,6 @@ class SingleFileEndToEnd : public Test
 
 		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
 		    trxn.commit();
-			c.disconnect();
 			return row[0].as<int>();
 		}
 };
@@ -339,7 +340,6 @@ class ProcessFolderEndtoEnd : public Test
 
 		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
-			c.disconnect();
         }
 
 		int CountRows()
@@ -349,7 +349,6 @@ class ProcessFolderEndtoEnd : public Test
 
 		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
 		    trxn.commit();
-			c.disconnect();
 			return row[0].as<int>();
 		}
 
@@ -360,7 +359,6 @@ class ProcessFolderEndtoEnd : public Test
 
 		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data WHERE label = 'Missing Value'");
 		    trxn.commit();
-			c.disconnect();
 			return row[0].as<int>();
 		}
 
@@ -373,7 +371,6 @@ class ProcessFolderEndtoEnd : public Test
 
 		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
 		    trxn.commit();
-			c.disconnect();
 			return row[0].as<int>();
 		}
 
@@ -1426,6 +1423,120 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 // 	// ASSERT_THAT(x1 == x2, Eq(false));
 // 	ASSERT_TRUE(0);
 // }
+
+class ProcessAmendedForms : public Test
+{
+	public:
+
+        void SetUp() override
+        {
+            spdlog::set_default_logger(DEFAULT_LOGGER);
+
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
+		    trxn.commit();
+        }
+
+		int CountRows()
+		{
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
+		    trxn.commit();
+			return row[0].as<int>();
+		}
+};
+
+TEST_F(ProcessAmendedForms, VerifyCanLoadDataFromAmendedFormToDBForFileWithXML10Q)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
+        "--log-level", "debug",
+		"--form", "10-Q",
+		"-f", ORIGINAL_10Q.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+	EXPECT_EQ(CountRows(), 194);
+
+	std::vector<std::string> tokens2{"the_program",
+        "--mode", "XBRL",
+        "--log-level", "debug",
+		"--form", "10-Q/A",
+		"-f", AMENDED_10Q.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens2);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+	EXPECT_EQ(CountRows(), 194);
+}
 
 
 void InitLogging ()
