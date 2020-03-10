@@ -1454,7 +1454,7 @@ class ProcessAmendedForms : public Test
 		}
 };
 
-TEST_F(ProcessAmendedForms, VerifyCanLoadDataFromAmendedFormToDBForFileWithXML10Q)
+TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML10Q)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
@@ -1496,7 +1496,7 @@ TEST_F(ProcessAmendedForms, VerifyCanLoadDataFromAmendedFormToDBForFileWithXML10
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 194);
+	EXPECT_EQ(CountRows(), 429);
 
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "XBRL",
@@ -1535,7 +1535,52 @@ TEST_F(ProcessAmendedForms, VerifyCanLoadDataFromAmendedFormToDBForFileWithXML10
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 194);
+	EXPECT_EQ(CountRows(), 713);
+}
+
+TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDataForFileWithXML10Q)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens2{"the_program",
+        "--mode", "XBRL",
+        "--log-level", "debug",
+		"--form", "10-Q/A",
+		"-f", AMENDED_10Q.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens2);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+	EXPECT_EQ(CountRows(), 713);
 }
 
 

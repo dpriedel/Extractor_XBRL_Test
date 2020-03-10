@@ -51,6 +51,7 @@
 
 #include <range/v3/action/sort.hpp>
 #include <range/v3/algorithm/equal.hpp>
+#include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/algorithm/set_algorithm.hpp>
 #include <range/v3/iterator.hpp>
 
@@ -1130,6 +1131,8 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     auto orig_instance_xml = ParseXMLContent(orig_instance_document);
 
     auto orig_gaap_data = ExtractGAAPFields(orig_instance_xml);
+//    ranges::for_each(orig_gaap_data, [](const auto& d) { std::cout << d.label << '\n'; }); 
+    EXPECT_EQ(orig_gaap_data.size(), 429);
     orig_gaap_data = std::move(orig_gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
 
     int orig_result = FindAllLabels(orig_gaap_data, orig_label_data);
@@ -1151,6 +1154,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
     gaap_data = std::move(gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
+    EXPECT_EQ(gaap_data.size(), 713);
 
     int result = FindAllLabels(gaap_data, label_data);
 
@@ -1158,7 +1162,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     ASSERT_FALSE(ranges::equal(orig_gaap_data, gaap_data, [](const auto& lhs, const auto& rhs) { return lhs.label == rhs.label && lhs.value == rhs.value; }));
 
-    PrintRangeDifferences(orig_gaap_data, gaap_data);
+//    PrintRangeDifferences(orig_gaap_data, gaap_data);
 }
 
 
