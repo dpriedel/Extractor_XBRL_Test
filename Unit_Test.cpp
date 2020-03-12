@@ -190,8 +190,12 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
     EM::FileContent file_content{file_content_10Q};
     const auto sections = LocateDocumentSections(file_content);
 
+    SEC_Header SEC_data;
+    SEC_data.UseData(file_content);
+    SEC_data.ExtractHeaderFields();
+
     FileHasXBRL filter1;
-    auto use_file = filter1(EM::SEC_Header_fields{}, sections);
+    auto use_file = filter1(SEC_data.GetFields(), sections);
     ASSERT_THAT(use_file, Eq(true));
 }
 
@@ -201,8 +205,12 @@ TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasNOXML)
     EM::FileContent file_content{file_content_10Q};
     const auto sections = LocateDocumentSections(file_content);
 
+    SEC_Header SEC_data;
+    SEC_data.UseData(file_content);
+    SEC_data.ExtractHeaderFields();
+
     FileHasXBRL filter1;
-    auto use_file = filter1(EM::SEC_Header_fields{}, sections);
+    auto use_file = filter1(SEC_data.GetFields(), sections);
     ASSERT_THAT(use_file, Eq(false));
 }
 
@@ -272,7 +280,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     ASSERT_TRUE(instance_document.get().starts_with("<?xml version")
         && instance_document.get().ends_with("</xbrl>\n"));
 }
@@ -284,7 +292,7 @@ TEST_F(LocateFileContentToUse, FindInstanceDocument10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     ASSERT_TRUE(instance_document.get().starts_with("<?xml version")
         && instance_document.get().ends_with("</xbrli:xbrl>\n"));
 }
@@ -296,7 +304,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     ASSERT_TRUE(labels_document.get().starts_with("<?xml version")
         && labels_document.get().ends_with("</link:linkbase>\n"));
 }
@@ -308,7 +316,7 @@ TEST_F(LocateFileContentToUse, FindLabelDocument10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, FILE_WITH_XML_10K);
     ASSERT_TRUE(labels_document.get().starts_with("<?xml version")
         && labels_document.get().ends_with("</link:linkbase>\n"));
 }
@@ -325,7 +333,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
@@ -336,7 +344,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseInstanceDocument10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     ASSERT_NO_THROW(ParseXMLContent(instance_document));
 }
 
@@ -347,7 +355,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, BAD_FILE1);
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
@@ -358,7 +366,7 @@ TEST_F(ParseDocumentContent, VerifyParseBadInstanceDocumentThrows210K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, BAD_FILE3);
     ASSERT_THROW(ParseXMLContent(instance_document), ExtractorException);
 }
 
@@ -369,7 +377,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
@@ -380,7 +388,7 @@ TEST_F(ParseDocumentContent, VerifyCanParseLabelsDocument10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, FILE_WITH_XML_10K);
     ASSERT_NO_THROW(ParseXMLContent(labels_document));
 }
 
@@ -396,7 +404,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
@@ -411,7 +419,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingData10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
@@ -426,7 +434,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractFilingDataNoSharesOut10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, NO_SHARES_OUT);
     auto instance_xml = ParseXMLContent(instance_document);
 
     const auto& [a, b, c, d] = ExtractFilingData(instance_xml);
@@ -442,7 +450,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -457,7 +465,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_NO_NAMESPACE_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -472,7 +480,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -487,7 +495,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     /* auto label_data = ExtractFieldLabels(labels_xml); */
@@ -503,7 +511,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsNoNamespace10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_NO_NAMESPACE_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
@@ -518,7 +526,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabelsMultipleLabelLinks10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_MULTIPLE_LABEL_LINKS);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
@@ -533,7 +541,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractLabels10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
@@ -548,7 +556,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto context_data = ExtractContextDefinitions(instance_xml);
@@ -563,7 +571,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContextsSomeNamespace10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_SOME_NAMESPACE_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto context_data = ExtractContextDefinitions(instance_xml);
@@ -578,7 +586,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractContexts10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto context_data = ExtractContextDefinitions(instance_xml);
@@ -593,12 +601,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -615,12 +623,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelBadFile210K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, BAD_FILE2);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, BAD_FILE2);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -637,12 +645,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelNoNamespace10Q
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_NO_NAMESPACE_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_NO_NAMESPACE_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -659,12 +667,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelSomeNamespace1
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, FILE_SOME_NAMESPACE_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_SOME_NAMESPACE_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -681,12 +689,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabel10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto context_data = ExtractContextDefinitions(instance_xml);
@@ -704,12 +712,12 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithUserLabelMissingValues1
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, MISSING_VALUES1_10K);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, MISSING_VALUES1_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -729,13 +737,13 @@ TEST_F(ExtractDocumentContent, DISABLED_VerifyCanMatchGAAPDataWithUserLabelMissi
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10K);
+    auto labels_document = LocateLabelDocument(document_sections_10K, MISSING_VALUES2_10K);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
     std::cout << "labels: " << label_data.size() << '\n';
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, MISSING_VALUES2_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -754,7 +762,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_WITH_XML_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -773,7 +781,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContextSomeNamespace10Q
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, FILE_SOME_NAMESPACE_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -792,7 +800,7 @@ TEST_F(ExtractDocumentContent, VerifyCanMatchGAAPDataWithContext10K)
 
     const auto document_sections_10K{LocateDocumentSections(file_content)};
 
-    auto instance_document = LocateInstanceDocument(document_sections_10K);
+    auto instance_document = LocateInstanceDocument(document_sections_10K, FILE_WITH_XML_10K);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -823,8 +831,12 @@ TEST_F(ValidateFolderFilters, VerifyFindAllXBRL)
             EM::FileContent file_content{file_content_dir};
             const auto sections = LocateDocumentSections(file_content);
 
+            SEC_Header SEC_data;
+            SEC_data.UseData(file_content);
+            SEC_data.ExtractHeaderFields();
+
             FileHasXBRL filter;
-            bool has_XML = filter(EM::SEC_Header_fields{}, sections);
+            bool has_XML = filter(SEC_data.GetFields(), sections);
             if (has_XML)
             {
                 ++files_with_XML;
@@ -1100,12 +1112,12 @@ TEST_F(ProcessAmendedForms, CanReadAmended10Q)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, AMENDED_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, AMENDED_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
@@ -1122,12 +1134,12 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     const auto orig_document_sections_10Q{LocateDocumentSections(orig_file_content)};
 
-    auto orig_labels_document = LocateLabelDocument(orig_document_sections_10Q);
+    auto orig_labels_document = LocateLabelDocument(orig_document_sections_10Q, ORIGINAL_10Q);
     auto orig_labels_xml = ParseXMLContent(orig_labels_document);
 
     auto orig_label_data = ExtractFieldLabels(orig_labels_xml);
 
-    auto orig_instance_document = LocateInstanceDocument(orig_document_sections_10Q);
+    auto orig_instance_document = LocateInstanceDocument(orig_document_sections_10Q, ORIGINAL_10Q);
     auto orig_instance_xml = ParseXMLContent(orig_instance_document);
 
     auto orig_gaap_data = ExtractGAAPFields(orig_instance_xml);
@@ -1144,12 +1156,12 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     const auto document_sections_10Q{LocateDocumentSections(file_content)};
 
-    auto labels_document = LocateLabelDocument(document_sections_10Q);
+    auto labels_document = LocateLabelDocument(document_sections_10Q, AMENDED_10Q);
     auto labels_xml = ParseXMLContent(labels_document);
 
     auto label_data = ExtractFieldLabels(labels_xml);
 
-    auto instance_document = LocateInstanceDocument(document_sections_10Q);
+    auto instance_document = LocateInstanceDocument(document_sections_10Q, AMENDED_10Q);
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
