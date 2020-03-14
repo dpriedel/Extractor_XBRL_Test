@@ -62,6 +62,7 @@ const fs::path MISSING_VALUES_LIST_SHORT{"../Extractor_XBRL_Test/missing_values_
 
 const fs::path ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14-043453.txt"};
 const fs::path AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
+const fs::path AMENDED_WITH_OLDER_DATA_10Q{"./multiple_amended_files.txt"};
 
 using namespace testing;
 
@@ -1562,6 +1563,52 @@ TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDat
         if (startup_OK)
         {
             myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+	EXPECT_EQ(CountRows(), 713);
+}
+
+TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToReplaceAmendedDataWithOlderDataForFileWithXML10K)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens2{"the_program",
+        "--mode", "XBRL",
+        "--log-level", "debug",
+		"--form", "10-K,10-K/A",
+        "-k", "5",
+		"--list", AMENDED_WITH_OLDER_DATA_10Q.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens2);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            EXPECT_NO_THROW( myApp.Run());
             myApp.Shutdown();
         }
         else
