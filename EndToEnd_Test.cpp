@@ -1584,7 +1584,7 @@ TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDat
 	EXPECT_EQ(CountRows(), 713);
 }
 
-TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToReplaceAmendedDataWithOlderDataForFileWithXML10K)
+TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOlderDataForFileWithXML10K)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
 	//	the test program.
