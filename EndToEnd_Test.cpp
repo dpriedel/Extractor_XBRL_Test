@@ -1627,7 +1627,9 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 713);
+    // we should end up with the contents of file /vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt
+
+	EXPECT_EQ(CountRows(), 134);
 }
 
 
