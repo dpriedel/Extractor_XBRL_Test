@@ -455,7 +455,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10Q)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    ASSERT_EQ(gaap_data.size(), 194);
+    ASSERT_EQ(gaap_data.size(), 192);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace10Q)
@@ -470,7 +470,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAPNoNamespace10Q)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    ASSERT_EQ(gaap_data.size(), 723);
+    ASSERT_EQ(gaap_data.size(), 699);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10K)
@@ -485,7 +485,7 @@ TEST_F(ExtractDocumentContent, VerifyCanExtractGAAP10K)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
 
-    ASSERT_EQ(gaap_data.size(), 1984);
+    ASSERT_EQ(gaap_data.size(), 1958);
 }
 
 TEST_F(ExtractDocumentContent, VerifyCanExtractLabels10Q)
@@ -1144,7 +1144,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     auto orig_gaap_data = ExtractGAAPFields(orig_instance_xml);
 //    ranges::for_each(orig_gaap_data, [](const auto& d) { std::cout << d.label << '\n'; }); 
-    EXPECT_EQ(orig_gaap_data.size(), 429);
+    EXPECT_EQ(orig_gaap_data.size(), 397);
     orig_gaap_data = std::move(orig_gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
 
     int orig_result = FindAllLabels(orig_gaap_data, orig_label_data);
@@ -1166,7 +1166,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
     gaap_data = std::move(gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
-    EXPECT_EQ(gaap_data.size(), 713);
+    EXPECT_EQ(gaap_data.size(), 680);
 
     int result = FindAllLabels(gaap_data, label_data);
 
