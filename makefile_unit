@@ -44,6 +44,7 @@ SRCS1 := $(SDIR1)/Unit_Test.cpp
 SDIR2 := ../Extractor_Markup/src
 SRCS2 := $(SDIR2)/Extractor_XBRL_FileFilter.cpp \
 		$(SDIR2)/Extractor_Utils.cpp \
+		$(SDIR2)/XLS_Data.cpp \
 		$(SDIR2)/SEC_Header.cpp
 #		$(SDIR2)/TickerConverter.cpp \
 #		$(SDIR2)/PathNameGenerator.cpp \
@@ -68,10 +69,13 @@ CFG_LIB := -lpthread \
 		-L/usr/local/lib64 \
 		-lgmock -lgmock_main -lgtest \
 		-L/usr/local/lib \
+		-lxlsxio_read \
 		-lfmt \
 		-lspdlog \
 		-ltz \
 		-L/usr/lib \
+		-lexpat \
+		-lzip \
 		-lpugixml \
 		-lpqxx -lpq
 

@@ -53,7 +53,9 @@
 #include <range/v3/algorithm/equal.hpp>
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/algorithm/set_algorithm.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/iterator.hpp>
+#include <range/v3/view/filter.hpp>
 
 namespace fs = std::filesystem;
 
@@ -63,6 +65,7 @@ using namespace testing;
 #include "Extractor_Utils.h"
 #include "Extractor_XBRL_FileFilter.h"
 #include "SEC_Header.h"
+#include "XLS_Data.h"
 
 
 // some specific files for Testing.
@@ -84,6 +87,9 @@ const EM::FileName MISSING_VALUES2_10K{"/vol_DA/SEC/SEC_forms/0001005210/10-Q_A/
 
 const EM::FileName ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14-043453.txt"};
 const EM::FileName AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
+
+const EM::FileName XLS_SHEET_1{"/vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt"};
+const EM::FileName XLS_SHEET_2{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -1175,6 +1181,39 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     ASSERT_FALSE(ranges::equal(orig_gaap_data, gaap_data, [](const auto& lhs, const auto& rhs) { return lhs.label == rhs.label && lhs.value == rhs.value; }));
 
 //    PrintRangeDifferences(orig_gaap_data, gaap_data);
+}
+
+class ProcessXLSXContent : public Test
+{
+
+};
+
+TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
+{
+    auto file_content_10K = LoadDataFileForUse(XLS_SHEET_1);
+    EM::FileContent file_content{file_content_10K};
+
+    const auto document_sections_10K{LocateDocumentSections(file_content)};
+
+    auto xls_content = LocateXLSDocument(document_sections_10K, XLS_SHEET_1);
+    EXPECT_TRUE(! xls_content.get().empty());
+
+    auto xls_data = ExtractXLSData(xls_content);
+    EXPECT_TRUE(! xls_data.empty());
+
+   XLS_File xls_file{std::move(xls_data)};
+
+   int number_of_sheets = 0;
+   ranges::for_each(xls_file, [&number_of_sheets](const auto& x) { ++number_of_sheets; });
+   EXPECT_EQ(number_of_sheets, 20);
+
+   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "Balance Sheets"; } );
+   EXPECT_TRUE(bal_sheets != ranges::end(xls_file));
+
+   int rows = 0;
+   ranges::for_each(*bal_sheets, [&rows](const auto&x) { ++rows; });
+   ASSERT_EQ(rows, 16);
+
 }
 
 
