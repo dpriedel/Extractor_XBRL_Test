@@ -19,7 +19,7 @@
 #
 MAKE=gmake
 
-BOOSTDIR := /extra/boost/boost-1.72_gcc-9
+BOOSTDIR := /extra/boost/boost-1.73_gcc-9
 GCCDIR := /extra/gcc/gcc-9
 GTESTDIR := /usr/local/include
 CPP := $(GCCDIR)/bin/g++
@@ -66,9 +66,8 @@ CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-L$(BOOSTDIR)/lib \
 		-lboost_iostreams-mt-d-x64 -lboost_regex-mt-d-x64 \
-		-L/usr/local/lib64 \
-		-lgmock -lgmock_main -lgtest \
 		-L/usr/local/lib \
+		-lgtest -lgtest_main \
 		-lxlsxio_read \
 		-lfmt \
 		-lspdlog \

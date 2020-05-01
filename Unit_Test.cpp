@@ -1248,26 +1248,26 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1)
    ranges::for_each(xls_file, [&number_of_sheets](const auto& x) { ++number_of_sheets; });
    EXPECT_EQ(number_of_sheets, 69);
 
-   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "Balance Sheets"; } );
+   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("Balance Sheets") != std::string::npos); } );
    EXPECT_TRUE(bal_sheets != ranges::end(xls_file));
 
    int rows = 0;
    ranges::for_each(*bal_sheets, [&rows](const auto&x) { ++rows; });
-   EXPECT_EQ(rows, 16);
+   EXPECT_EQ(rows, 40);
 
-   auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "Statements of Operations"; } );
+   auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("Statements of Operations") != std::string::npos; } );
    EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
 
    int rows2 = 0;
    ranges::for_each(*stmt_of_ops, [&rows2](const auto&x) { ++rows2; });
-   EXPECT_EQ(rows2, 18);
+   EXPECT_EQ(rows2, 35);
 
-   auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "Statements of Cash Flows"; } );
+   auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("Statements of Cash Flows") != std::string::npos; } );
    EXPECT_TRUE(cash_flows != ranges::end(xls_file));
 
    int rows3 = 0;
    ranges::for_each(*cash_flows, [&rows3](const auto&x) { ++rows3; });
-   ASSERT_EQ(rows3, 20);
+   ASSERT_EQ(rows3, 44);
 
 }
 
