@@ -19,8 +19,8 @@
 #
 MAKE=gmake
 
-BOOSTDIR := /extra/boost/boost-1.73_gcc-9
-GCCDIR := /extra/gcc/gcc-9
+BOOSTDIR := /extra/boost/boost-1.73_gcc-10
+GCCDIR := /extra/gcc/gcc-10
 GTESTDIR := /usr/local/include
 CPP := $(GCCDIR)/bin/g++
 
@@ -62,6 +62,8 @@ ifeq "$(CFG)" "Debug"
 
 OUTDIR := Debug_unit
 
+# NOTE: use libzip NOT libminizip
+#
 CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-L$(BOOSTDIR)/lib \
@@ -84,7 +86,7 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
-COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -DSPDLOG_FMT_EXTERNAL -fconcepts -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -DSPDLOG_FMT_EXTERNAL -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 # COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -fPIC -fsanitize=address -o $@ $(CFG_INC) $< -march=native -MMD -MP
 # LINK := $(CPP)  -g -fsanitize=address -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
