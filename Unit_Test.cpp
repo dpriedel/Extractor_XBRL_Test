@@ -1215,18 +1215,17 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
    auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
    EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
 
-   int rows2 = 0;
-   ranges::for_each(*stmt_of_ops, [&rows2](const auto&x) { ++rows2; });
+   int rows2 = ranges::distance(*stmt_of_ops);
    EXPECT_EQ(rows2, 18);
 
    auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of cash flows"; } );
    EXPECT_TRUE(cash_flows != ranges::end(xls_file));
 
-   int rows3 = 0;
-   ranges::for_each(*cash_flows, [&rows3](const auto&x) { ++rows3; });
+   int rows3 = ranges::distance(*cash_flows);
    ASSERT_EQ(rows3, 20);
 
 }
+
 TEST_F(ProcessXLSXContent, CanProcess10QFile1)
 {
     auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_2);
@@ -1248,27 +1247,34 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1)
    auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
    EXPECT_TRUE(bal_sheets != ranges::end(xls_file));
 
-   int rows = 0;
-   ranges::for_each(*bal_sheets, [&rows](const auto&x) { ++rows; });
+   int rows = ranges::distance(*bal_sheets);
    EXPECT_EQ(rows, 40);
 
    auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of operations") != std::string::npos; } );
    EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
 
-   int rows2 = 0;
-   ranges::for_each(*stmt_of_ops, [&rows2](const auto&x) { ++rows2; });
+   int rows2 = ranges::distance(*stmt_of_ops);
    EXPECT_EQ(rows2, 35);
 
    auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of cash flows") != std::string::npos; } );
    EXPECT_TRUE(cash_flows != ranges::end(xls_file));
 
-   int rows3 = 0;
-   ranges::for_each(*cash_flows, [&rows3](const auto&x) { ++rows3; });
+   int rows3 = ranges::distance(*cash_flows);
    ASSERT_EQ(rows3, 44);
 
 }
 
+TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
+{
+    auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_2);
+    EM::FileContent file_content{file_content_10Q};
 
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
+
+    auto financial_content = FindAndExtractXLSContent(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(financial_content.has_data());
+
+}
 
 /* 
  * ===  FUNCTION  ======================================================================
