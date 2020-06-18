@@ -1274,6 +1274,15 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
     auto financial_content = FindAndExtractXLSContent(document_sections_10Q, XLS_SHEET_2);
     EXPECT_TRUE(financial_content.has_data());
 
+    EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 33);
+    ranges::for_each(financial_content.balance_sheet_.balance_sheet_, [](const auto& row) { std::cout << row << '\n'; });
+    std::cout << "\n\n\n";
+    EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 25);
+    ranges::for_each(financial_content.statement_of_operations_.statement_of_operations_, [](const auto& row) { std::cout << row << '\n'; });
+    std::cout << "\n\n\n";
+    EXPECT_EQ(financial_content.cash_flows_.values_.size(), 34);
+    ranges::for_each(financial_content.cash_flows_.cash_flows_, [](const auto& row) { std::cout << row << '\n'; });
+    std::cout << "\n\n\n";
 }
 
 /* 
