@@ -1208,6 +1208,20 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
    int number_of_sheets2 = ranges::distance(xls_file);
    EXPECT_EQ(number_of_sheets2, 20);
 
+   auto s1 = xls_file.begin();
+   ++s1;
+   ++s1;
+   ++s1;
+   auto s2{s1};
+   auto sheets2 = ranges::distance(s2, xls_file.end());
+   EXPECT_EQ(sheets2, 17);      // copy should pick up where the other left off
+
+   auto s3{std::move(s1)};
+   auto sheets3 = ranges::distance(s3, xls_file.end());
+   EXPECT_EQ(sheets3, 17);      // copy should pick up where the other left off
+
+   EXPECT_EQ(s1, xls_file.end());
+
    auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
    EXPECT_TRUE(bal_sheets != ranges::end(xls_file));
    auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
@@ -1215,6 +1229,24 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
 
    int rows = ranges::distance(*bal_sheets);
    EXPECT_EQ(rows, 16);
+
+   // now, test some iterator copies
+
+   auto r1 = bal_sheets->begin();
+   ++r1;
+   ++r1;
+   auto r2{r1};
+   int rows_r2 = ranges::distance(r2, bal_sheets->end());
+   EXPECT_EQ(rows_r2, 14);      // copy should pick up where the other left off
+
+   r1 = bal_sheets->begin();
+   ++r1;
+   ++r1;
+   auto r3{std::move(r1)};
+   int rows_r3 = ranges::distance(r3, bal_sheets->end());
+   EXPECT_EQ(rows_r3, 14);      // copy should pick up where the other left off
+
+   EXPECT_EQ(r1, bal_sheets->end());
 
    auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
    EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
