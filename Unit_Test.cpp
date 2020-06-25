@@ -1235,7 +1235,7 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
    auto r1 = bal_sheets->begin();
    ++r1;
    ++r1;
-   auto r2{r1};
+   auto r2 = r1;
    int rows_r2 = ranges::distance(r2, bal_sheets->end());
    EXPECT_EQ(rows_r2, 14);      // copy should pick up where the other left off
 
