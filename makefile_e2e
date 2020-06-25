@@ -70,7 +70,7 @@ OUTDIR=Debug_e2e
 CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-L$(BOOSTDIR)/lib \
-		-lboost_iostreams-mt-d-x64 -lboost_regex-mt-d-x64 \
+		-lboost_regex-mt-d-x64 \
 		-lboost_program_options-mt-x64 \
 		-lgtest -lgtest_main \
 		-L/usr/local/lib \
