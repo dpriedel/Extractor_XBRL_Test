@@ -1305,6 +1305,43 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1)
 
 }
 
+TEST_F(ProcessXLSXContent, CanFindSharesOutstanding)
+{
+    auto file_content_10K = LoadDataFileForUse(XLS_SHEET_1);
+    EM::FileContent file_content_1{file_content_10K};
+
+    const auto document_sections_10K{LocateDocumentSections(file_content_1)};
+
+    auto xls_content_10K = LocateXLSDocument(document_sections_10K, XLS_SHEET_1);
+    EXPECT_TRUE(! xls_content_10K.get().empty());
+
+    auto xls_data_10K = ExtractXLSData(xls_content_10K);
+    EXPECT_TRUE(! xls_data_10K.empty());
+
+    XLS_File xls_file_10K{std::move(xls_data_10K)};
+    
+    int64_t shares = ExtractXLSSharesOutstanding(*xls_file_10K.begin());
+    EXPECT_EQ(shares, 22033080);
+
+    auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_2);
+    EM::FileContent file_content_2{file_content_10Q};
+
+    const auto document_sections_10Q{LocateDocumentSections(file_content_2)};
+
+    auto xls_content_10Q = LocateXLSDocument(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(! xls_content_10Q.get().empty());
+
+    auto xls_data_10Q = ExtractXLSData(xls_content_10Q);
+    EXPECT_TRUE(! xls_data_10Q.empty());
+
+    XLS_File xls_file_10Q{std::move(xls_data_10Q)};
+    
+    int64_t shares2 = ExtractXLSSharesOutstanding(*xls_file_10Q.begin());
+    EXPECT_EQ(shares2, 61384027);
+
+
+}
+
 TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
 {
     auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_2);
