@@ -80,10 +80,11 @@ CFG_LIB := -lpthread \
 		-lfmt \
 		-lspdlog \
 		-ltz \
+		-lpqxx \
 		-L/usr/lib \
 		-lexpat \
 		-lzip \
-		-lpqxx -lpq \
+		-lpq \
 		-lpugixml
 
 OBJS1=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS1)))))

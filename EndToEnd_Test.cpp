@@ -81,10 +81,21 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
 		    trxn.commit();
         }
 
+//		int CountRows()
+//		{
+//		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+//		    pqxx::work trxn{c};
+//
+//		    // make sure the DB is empty before we start
+//
+//		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
+//		    trxn.commit();
+//			return row[0].as<int>();
+//		}
 		int CountRows()
 		{
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
@@ -92,9 +103,11 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
+		    auto row1 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_bal_sheet_data");
+		    auto row2 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_stmt_of_ops_data");
+		    auto row3 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_cash_flows_data");
 		    trxn.commit();
-			return row[0].as<int>();
+			return row1[0].as<int>() + row2[0].as<int>() + row3[0].as<int>();
 		}
 };
 
@@ -339,7 +352,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
 		    trxn.commit();
         }
 
@@ -1439,7 +1452,7 @@ class ProcessAmendedForms : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
 		    trxn.commit();
         }
 
