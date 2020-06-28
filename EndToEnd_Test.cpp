@@ -81,7 +81,7 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
 		    trxn.commit();
         }
 
@@ -103,11 +103,20 @@ class SingleFileEndToEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row1 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_bal_sheet_data");
-		    auto row2 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_stmt_of_ops_data");
-		    auto row3 = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_cash_flows_data");
+		    auto row1 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_bal_sheet_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row2 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_stmt_of_ops_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row3 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_cash_flows_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
 		    trxn.commit();
-			return row1[0].as<int>() + row2[0].as<int>() + row3[0].as<int>();
+			int total = row1 + row2 + row3;
+            if ( total == 0)
+            {
+                // maybe we have plain XBRL
+
+                pqxx::work trxn{c};
+                total = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_xbrl_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XBRL';");
+                trxn.commit();
+            }
+            return total;
 		}
 };
 
@@ -154,7 +163,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountRows(), 192);
+	ASSERT_EQ(CountRows(), 55);
 }
 
 TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
@@ -199,7 +208,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountRows(), 699);
+	ASSERT_EQ(CountRows(), 91);
 }
 
 TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt10K)
@@ -291,7 +300,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10K)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountRows(), 1958);
+	ASSERT_EQ(CountRows(), 194);
 }
 
 TEST_F(SingleFileEndToEnd, WorkWithBadFile210K)
@@ -336,7 +345,7 @@ TEST_F(SingleFileEndToEnd, WorkWithBadFile210K)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountRows(), 1620);
+	ASSERT_EQ(CountRows(), 106);
 }
 
 class ProcessFolderEndtoEnd : public Test
@@ -352,7 +361,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
 		    trxn.commit();
         }
 
@@ -361,9 +370,22 @@ class ProcessFolderEndtoEnd : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
+		    // make sure the DB is empty before we start
+
+		    auto row1 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_bal_sheet_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row2 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_stmt_of_ops_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row3 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_cash_flows_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
 		    trxn.commit();
-			return row[0].as<int>();
+			int total = row1 + row2 + row3;
+            if ( total == 0)
+            {
+                // maybe we have plain XBRL
+
+                pqxx::work trxn{c};
+                total = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_xbrl_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XBRL';");
+                trxn.commit();
+            }
+            return total;
 		}
 
 		int CountMissingValues()
@@ -383,7 +405,7 @@ class ProcessFolderEndtoEnd : public Test
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id WHERE data_source = 'XBRL'");
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
 		    trxn.commit();
 			return row[0].as<int>();
 		}
@@ -573,7 +595,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountFilings(), 31);
+    // file list contains a very unusual FinancialReport spread sheet. Don't expect to read it
+	ASSERT_EQ(CountFilings(), 30);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
@@ -1452,20 +1475,31 @@ class ProcessAmendedForms : public Test
 
 		    // make sure the DB is empty before we start
 
-		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source is NOT 'HTML'");
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
 		    trxn.commit();
         }
 
-		int CountRows()
+        int CountRows()
 		{
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
 		    // make sure the DB is empty before we start
 
-		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data");
+		    auto row1 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_bal_sheet_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row2 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_stmt_of_ops_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row3 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_cash_flows_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
 		    trxn.commit();
-			return row[0].as<int>();
+			int total = row1 + row2 + row3;
+            if ( total == 0)
+            {
+                // maybe we have plain XBRL
+
+                pqxx::work trxn{c};
+                total = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_xbrl_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XBRL';");
+                trxn.commit();
+            }
+            return total;
 		}
 };
 
