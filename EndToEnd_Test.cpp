@@ -548,7 +548,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountFilings(), 155);
+	ASSERT_EQ(CountFilings(), 152);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
@@ -643,7 +643,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
         spdlog::error("Something totally unexpected happened.");
 	}
     // there are 45 potential filings in the list.  3 are 'bad'.
-	ASSERT_EQ(CountFilings(), 42);
+	ASSERT_EQ(CountFilings(), 41);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
@@ -739,8 +739,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-    // there are 7 potential filings in the list.  1 is 'bad'.
-	ASSERT_EQ(CountFilings(), 6);
+    // there are 7 potential filings in the list.  2 are 'bad'.
+	ASSERT_EQ(CountFilings(), 5);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
@@ -817,8 +817,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-    // there are 7 potential filings in the list.  1 is 'bad'.
-	ASSERT_EQ(CountFilings(), 6);
+    // there are 7 potential filings in the list.  2 are 'bad'.
+	ASSERT_EQ(CountFilings(), 5);
 }
 
 TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile10K)
@@ -1001,7 +1001,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountFilings(), 155);
+	ASSERT_EQ(CountFilings(), 152);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync10Q)
@@ -1374,7 +1374,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
         spdlog::error("Something totally unexpected happened.");
 	}
 	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
-	ASSERT_EQ(CountFilings(), 155);
+	ASSERT_EQ(CountFilings(), 152);
 }
 
 TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
