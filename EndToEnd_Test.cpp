@@ -1484,8 +1484,6 @@ class ProcessAmendedForms : public Test
 		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
 		    pqxx::work trxn{c};
 
-		    // make sure the DB is empty before we start
-
 		    auto row1 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_bal_sheet_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
 		    auto row2 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_stmt_of_ops_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
 		    auto row3 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_cash_flows_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
