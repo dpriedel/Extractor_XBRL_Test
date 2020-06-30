@@ -1363,6 +1363,56 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
     std::cout << "\n\n\n";
 }
 
+TEST_F(ProcessXLSXContent, CanProcess10QFile1WithNotesHighLevel)
+{
+    auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
+    EM::FileContent file_content{file_content_10Q};
+
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
+
+    auto xls_content = LocateXLSDocument(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(! xls_content.get().empty());
+
+    auto xls_data = ExtractXLSData(xls_content);
+    EXPECT_TRUE(! xls_data.empty());
+
+    XLS_File xls_file{std::move(xls_data)};
+
+//   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+//   auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+//   EXPECT_TRUE(bal_sheets2 != ranges::end(xls_file));
+//
+//   int rows = ranges::distance(*bal_sheets);
+//   int rowsx = ranges::distance(*bal_sheets);
+//   EXPECT_EQ(rowsx, 40);
+
+    auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("cash flow") != std::string::npos; } );
+    EXPECT_TRUE(cash_flows != ranges::end(xls_file));
+    int rows = ranges::distance(*cash_flows);
+    EXPECT_EQ(rows, 47);
+    ranges::for_each(*cash_flows, [](const auto& row) {std::cout.write(row.data(), row.size()) ; });
+
+//    auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
+//    EM::FileContent file_content{file_content_10Q};
+//
+//    const auto document_sections_10Q{LocateDocumentSections(file_content)};
+//
+    auto financial_content = FindAndExtractXLSContent(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(financial_content.has_data());
+
+    EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 25);
+    ranges::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+    // one row is a zero with no note so it's OK to not extract it. Counting the zero, right answer is 16
+    EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 15);
+    ranges::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+    // one row is a zero with no note so it's OK to not extract it. Counting the zero, right answer is 30
+    EXPECT_EQ(financial_content.cash_flows_.values_.size(), 29);
+    ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+}
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  InitLogging

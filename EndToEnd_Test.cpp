@@ -208,7 +208,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountRows(), 91);
+	ASSERT_EQ(CountRows(), 92);
 }
 
 TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt10K)
@@ -1545,7 +1545,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 397);
+	EXPECT_EQ(CountRows(), 69);
 
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "XBRL",
@@ -1584,7 +1584,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 680);
+	EXPECT_EQ(CountRows(), 69);
 }
 
 TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDataForFileWithXML10Q)
@@ -1629,7 +1629,7 @@ TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDat
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	EXPECT_EQ(CountRows(), 680);
+	EXPECT_EQ(CountRows(), 69);
 }
 
 TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOlderDataForFileWithXML10K)
@@ -1677,7 +1677,7 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
 	}
     // we should end up with the contents of file /vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt
 
-	EXPECT_EQ(CountRows(), 120);
+	EXPECT_EQ(CountRows(), 33);
 }
 
 
