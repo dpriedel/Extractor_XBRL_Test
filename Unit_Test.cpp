@@ -90,6 +90,8 @@ const EM::FileName AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/00011931
 
 const EM::FileName XLS_SHEET_1{"/vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt"};
 const EM::FileName XLS_SHEET_2{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
+const EM::FileName XLS_SHEET_3{"/vol_DA/SEC/Archives/edgar/data/736822/0001437749-13-013064.txt"};
+const EM::FileName XLS_SHEET_4{"/vol_DA/SEC/Archives/edgar/data/40888/0001193125-13-399898.txt"};
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -1339,7 +1341,40 @@ TEST_F(ProcessXLSXContent, CanFindSharesOutstanding)
     int64_t shares2 = ExtractXLSSharesOutstanding(*xls_file_10Q.begin());
     EXPECT_EQ(shares2, 61384027);
 
+    auto file_content_10Q2 = LoadDataFileForUse(XLS_SHEET_3);
+    EM::FileContent file_content_3{file_content_10Q2};
 
+    const auto document_sections_10Q2{LocateDocumentSections(file_content_3)};
+
+    auto xls_content_10Q2 = LocateXLSDocument(document_sections_10Q2, XLS_SHEET_3);
+    EXPECT_TRUE(! xls_content_10Q2.get().empty());
+
+    auto xls_data_10Q2 = ExtractXLSData(xls_content_10Q2);
+    EXPECT_TRUE(! xls_data_10Q2.empty());
+
+    XLS_File xls_file_10Q2{std::move(xls_data_10Q2)};
+    
+    int64_t shares3 = ExtractXLSSharesOutstanding(*xls_file_10Q2.begin());
+    EXPECT_EQ(shares3, 100);
+}
+
+TEST_F(ProcessXLSXContent, CanFindSharesOutstandingWithMultiplier)
+{
+    auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_4);
+    EM::FileContent file_content_2{file_content_10Q};
+
+    const auto document_sections_10Q{LocateDocumentSections(file_content_2)};
+
+    auto xls_content_10Q = LocateXLSDocument(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(! xls_content_10Q.get().empty());
+
+    auto xls_data_10Q = ExtractXLSData(xls_content_10Q);
+    EXPECT_TRUE(! xls_data_10Q.empty());
+
+    XLS_File xls_file_10Q{std::move(xls_data_10Q)};
+    
+    int64_t shares2 = ExtractXLSSharesOutstanding(*xls_file_10Q.begin());
+    EXPECT_EQ(shares2, 6090000);
 }
 
 TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
