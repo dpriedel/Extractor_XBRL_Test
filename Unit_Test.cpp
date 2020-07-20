@@ -92,7 +92,8 @@ const EM::FileName XLS_SHEET_1{"/vol_DA/SEC/SEC_forms/0001453883/10-K_A/00010799
 const EM::FileName XLS_SHEET_2{"/vol_DA/SEC/Archives/edgar/data/68270/0000068270-13-000059.txt"};
 const EM::FileName XLS_SHEET_3{"/vol_DA/SEC/Archives/edgar/data/736822/0001437749-13-013064.txt"};
 const EM::FileName XLS_SHEET_4{"/vol_DA/SEC/Archives/edgar/data/40888/0001193125-13-399898.txt"};
-
+const EM::FileName XLS_SHEET_5{"/vol_DA/SEC/Archives/edgar/data/29989/0000029989-13-000015.txt"};
+const EM::FileName XLS_SHEET_6{"/vol_DA/SEC/Archives/edgar/data/110471/0000110471-13-000005.txt"};
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
 
@@ -1374,7 +1375,7 @@ TEST_F(ProcessXLSXContent, CanFindSharesOutstandingWithMultiplier)
     XLS_File xls_file_10Q{std::move(xls_data_10Q)};
     
     int64_t shares2 = ExtractXLSSharesOutstanding(*xls_file_10Q.begin());
-    EXPECT_EQ(shares2, 6090000);
+    EXPECT_EQ(shares2, 60900000);
 }
 
 TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
@@ -1396,6 +1397,30 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
     EXPECT_EQ(financial_content.cash_flows_.values_.size(), 34);
     ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
+}
+
+TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel2)
+{
+    auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_5);
+//    auto file_content_10Q = LoadDataFileForUse(XLS_SHEET_6);
+    EM::FileContent file_content{file_content_10Q};
+
+    const auto document_sections_10Q{LocateDocumentSections(file_content)};
+
+    auto financial_content = FindAndExtractXLSContent(document_sections_10Q, XLS_SHEET_2);
+    EXPECT_TRUE(financial_content.has_data());
+
+    EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 34);
+    ranges::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+    EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 14);
+    ranges::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+    EXPECT_EQ(financial_content.cash_flows_.values_.size(), 30);
+    ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    std::cout << "\n\n\n";
+
+    EXPECT_EQ(financial_content.outstanding_shares_, 257360875);
 }
 
 TEST_F(ProcessXLSXContent, CanProcess10QFile1WithNotesHighLevel)
