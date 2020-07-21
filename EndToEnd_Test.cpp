@@ -63,6 +63,7 @@ const fs::path MISSING_VALUES_LIST_SHORT{"../Extractor_XBRL_Test/missing_values_
 const fs::path ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14-043453.txt"};
 const fs::path AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
 const fs::path AMENDED_WITH_OLDER_DATA_10Q{"./multiple_amended_files.txt"};
+const fs::path DUPLICATE_FILE_NAMES{"./duplicates.txt"};
 
 using namespace testing;
 
@@ -548,7 +549,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountFilings(), 152);
+	ASSERT_EQ(CountFilings(), 153);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
@@ -1001,7 +1002,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async10Q)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	ASSERT_EQ(CountFilings(), 152);
+	ASSERT_EQ(CountFilings(), 153);
 }
 
 TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync10Q)
@@ -1374,7 +1375,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
         spdlog::error("Something totally unexpected happened.");
 	}
 	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
-	ASSERT_EQ(CountFilings(), 152);
+	ASSERT_EQ(CountFilings(), 153);
 }
 
 TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
@@ -1678,6 +1679,122 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
 	EXPECT_EQ(CountRows(), 33);
 }
 
+class TestDBErrors : public Test
+{
+	public:
+
+        void SetUp() override
+        {
+            spdlog::set_default_logger(DEFAULT_LOGGER);
+
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    trxn.exec("DELETE FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
+		    trxn.commit();
+        }
+
+		int CountRows()
+		{
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    auto row1 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_bal_sheet_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row2 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_stmt_of_ops_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    auto row3 = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_cash_flows_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XLS';");
+		    trxn.commit();
+			int total = row1 + row2 + row3;
+            if ( total == 0)
+            {
+                // maybe we have plain XBRL
+
+                pqxx::work trxn{c};
+                total = trxn.query_value<int>("select count(*) from unified_extracts.sec_filing_id as t1 inner join unified_extracts.sec_xbrl_data as t2 on t1.filing_id =  t2.filing_id where t1.data_source = 'XBRL';");
+                trxn.commit();
+            }
+            return total;
+		}
+
+		int CountMissingValues()
+		{
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_xbrl_data WHERE label = 'Missing Value'");
+		    trxn.commit();
+			return row[0].as<int>();
+		}
+
+		int CountFilings()
+		{
+		    pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
+		    pqxx::work trxn{c};
+
+		    // make sure the DB is empty before we start
+
+		    auto row = trxn.exec1("SELECT count(*) FROM unified_extracts.sec_filing_id WHERE data_source != 'HTML'");
+		    trxn.commit();
+			return row[0].as<int>();
+		}
+
+//        void TearDown() override
+//        {
+//            spdlog::shutdown();
+//        }
+};
+
+TEST_F(TestDBErrors, DISABLED_VerifyThrowsOnDuplicateKeyAsync)
+{
+    // disabled because it doesn't really test what it says.
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens2{"the_program",
+        "--mode", "BOTH",
+        "--log-level", "info",
+		"--form", "10-Q",
+        "-k", "3",
+		"--list", DUPLICATE_FILE_NAMES.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens2);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            EXPECT_NO_THROW( myApp.Run());
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+    // we should end up with the contents of file /vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt
+
+	EXPECT_EQ(CountFilings(), 1);
+}
 
 void InitLogging ()
 {
