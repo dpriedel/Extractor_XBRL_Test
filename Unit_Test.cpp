@@ -54,6 +54,7 @@
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/algorithm/set_algorithm.hpp>
 #include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/action/transform.hpp>
 #include <range/v3/iterator.hpp>
 #include <range/v3/view/filter.hpp>
 
@@ -192,6 +193,32 @@ class IdentifyXMLFilesToUse : public Test
 {
 
 };
+
+TEST_F(IdentifyXMLFilesToUse, FileNameHasForm)
+{
+    std::string form = "10-Q,10-Q/A";
+    form |= ranges::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    auto form_list = split_string<std::string>(form, ',');
+
+    bool test1 = FormIsInFileName(form_list, FILE_WITH_XML_10Q);
+    EXPECT_THAT(test1, Eq(false));
+
+    bool test2 = FormIsInFileName(form_list, ORIGINAL_10Q);
+    EXPECT_THAT(test2, Eq(true));
+
+    std::string form2 = "10-K,10-K/A";
+    form2 |= ranges::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    auto form_list2 = split_string<std::string>(form2, ',');
+
+    bool test3 = FormIsInFileName(form_list2, FILE_WITH_XML_10Q);
+    EXPECT_THAT(test3, Eq(false));
+
+    bool test4 = FormIsInFileName(form_list2, ORIGINAL_10Q);
+    EXPECT_THAT(test4, Eq(false));
+
+    bool test5 = FormIsInFileName(form_list2, XLS_SHEET_1);
+    EXPECT_THAT(test5, Eq(true));
+}
 
 TEST_F(IdentifyXMLFilesToUse, ConfirmFileHasXML)
 {

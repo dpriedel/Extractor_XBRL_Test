@@ -647,6 +647,55 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 	ASSERT_EQ(CountFilings(), 41);
 }
 
+TEST_F(ProcessFolderEndtoEnd, CheckSkipsFilesBecauseOfFormName)
+{
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens{"the_program",
+        "--mode", "XBRL",
+        "--log-level", "debug",
+		"--log-path", "/tmp/test8.log",
+//		"--list", MISSING_VALUES_LIST,
+		"--list", MISSING_VALUES_LIST_SHORT,
+		"--form", "10-K/A",
+        "--filename-has-form"
+//        "-k", "4"
+    };
+
+	try
+	{
+        ExtractorApp myApp(tokens);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+	EXPECT_TRUE(CountFilings() == 0);
+}
+
 TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
 {
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
@@ -707,7 +756,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
 		"--form", "10-K",
 		"--log-path", "/tmp/test1.log",
 		"--list", "./list_with_bad_file.txt",
-        "filename-has-form"
+        "--filename-has-form"
     };
 
 	try
