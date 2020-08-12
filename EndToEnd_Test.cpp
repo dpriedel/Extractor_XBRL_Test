@@ -64,6 +64,7 @@ const fs::path ORIGINAL_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q/0001193125-14
 const fs::path AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-15-234644.txt"};
 const fs::path AMENDED_WITH_OLDER_DATA_10Q{"./multiple_amended_files.txt"};
 const fs::path DUPLICATE_FILE_NAMES{"./duplicates.txt"};
+const fs::path DUPLICATE_FILE_NAMES_10K{"./duplicates_10K.txt"};
 
 using namespace testing;
 
@@ -1559,6 +1560,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	std::vector<std::string> tokens{"the_program",
         "--mode", "XBRL",
         "--log-level", "debug",
+        "--log-path", "/tmp/test1.log",
 		"--form", "10-Q",
 		"-f", ORIGINAL_10Q.string()
 	};
@@ -1598,6 +1600,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "XBRL",
         "--log-level", "debug",
+        "--log-path", "/tmp/test1.log",
 		"--form", "10-Q/A",
 		"-f", AMENDED_10Q.string()
 	};
@@ -1643,6 +1646,7 @@ TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDat
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "XBRL",
         "--log-level", "debug",
+        "--log-path", "/tmp/test2.log",
 		"--form", "10-Q/A",
 		"-f", AMENDED_10Q.string()
 	};
@@ -1688,6 +1692,7 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "XBRL",
         "--log-level", "debug",
+        "--log-path", "/tmp/test3.log",
 		"--form", "10-K,10-K/A",
         "-k", "5",
 		"--list", AMENDED_WITH_OLDER_DATA_10Q.string()
@@ -1704,7 +1709,7 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
         bool startup_OK = myApp.Startup();
         if (startup_OK)
         {
-            EXPECT_NO_THROW( myApp.Run());
+            myApp.Run();
             myApp.Shutdown();
         }
         else
@@ -1796,7 +1801,7 @@ class TestDBErrors : public Test
 //        }
 };
 
-TEST_F(TestDBErrors, DISABLED_VerifyThrowsOnDuplicateKeyAsync)
+TEST_F(TestDBErrors, VerifyThrowsOnDuplicateKeyAsync)
 {
     // disabled because it doesn't really test what it says.
 	//	NOTE: the program name 'the_program' in the command line below is ignored in the
@@ -1805,9 +1810,9 @@ TEST_F(TestDBErrors, DISABLED_VerifyThrowsOnDuplicateKeyAsync)
 	std::vector<std::string> tokens2{"the_program",
         "--mode", "BOTH",
         "--log-level", "info",
-		"--form", "10-Q",
-        "-k", "3",
-		"--list", DUPLICATE_FILE_NAMES.string()
+		"--form", "10-K",
+        "-k", "5",
+		"--list", DUPLICATE_FILE_NAMES_10K.string()
 	};
 
 	try
@@ -1821,7 +1826,7 @@ TEST_F(TestDBErrors, DISABLED_VerifyThrowsOnDuplicateKeyAsync)
         bool startup_OK = myApp.Startup();
         if (startup_OK)
         {
-            EXPECT_NO_THROW( myApp.Run());
+            myApp.Run();
             myApp.Shutdown();
         }
         else
