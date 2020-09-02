@@ -65,6 +65,7 @@ const fs::path AMENDED_10Q{"/vol_DA/SEC/SEC_forms/0001001258/10-Q_A/0001193125-1
 const fs::path AMENDED_WITH_OLDER_DATA_10Q{"./multiple_amended_files.txt"};
 const fs::path DUPLICATE_FILE_NAMES{"./duplicates.txt"};
 const fs::path DUPLICATE_FILE_NAMES_10K{"./duplicates_10K.txt"};
+const fs::path CONVERSION_ERRORS_FILE_NAMES_10K{"./conversion_error.lst"};
 
 using namespace testing;
 
@@ -1424,8 +1425,8 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
 	{		// handle exception: unspecified
         spdlog::error("Something totally unexpected happened.");
 	}
-	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated.
-	ASSERT_EQ(CountFilings(), 153);
+	// NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated and some error out
+	ASSERT_EQ(CountFilings(), 152);
 }
 
 TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
@@ -1813,6 +1814,55 @@ TEST_F(TestDBErrors, VerifyThrowsOnDuplicateKeyAsync)
 		"--form", "10-K",
         "-k", "5",
 		"--list", DUPLICATE_FILE_NAMES_10K.string()
+	};
+
+	try
+	{
+        ExtractorApp myApp(tokens2);
+
+		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+        spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
+                test_info->test_case_name(), "\n\n"));
+
+        bool startup_OK = myApp.Startup();
+        if (startup_OK)
+        {
+            myApp.Run();
+            myApp.Shutdown();
+        }
+        else
+        {
+            std::cout << "Problems starting program.  No processing done.\n";
+        }
+	}
+
+    // catch any problems trying to setup application
+
+	catch (const std::exception& theProblem)
+	{
+        spdlog::error(catenate("Something fundamental went wrong: ", theProblem.what()));
+	}
+	catch (...)
+	{		// handle exception: unspecified
+        spdlog::error("Something totally unexpected happened.");
+	}
+    // we should end up with the contents of file /vol_DA/SEC/SEC_forms/0001453883/10-K_A/0001079974-16-001022.txt
+
+	EXPECT_EQ(CountFilings(), 1);
+}
+
+TEST_F(TestDBErrors, LookForConversionErrors)
+{
+    // disabled because it doesn't really test what it says.
+	//	NOTE: the program name 'the_program' in the command line below is ignored in the
+	//	the test program.
+
+	std::vector<std::string> tokens2{"the_program",
+        "--mode", "BOTH",
+        "--log-level", "debug",
+		"--form", "10-K",
+        "-k", "5",
+		"--list", CONVERSION_ERRORS_FILE_NAMES_10K.string()
 	};
 
 	try
