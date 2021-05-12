@@ -19,8 +19,8 @@
 #
 MAKE=gmake
 
-BOOSTDIR := /extra/boost/boost-1.74_gcc-10
-GCCDIR := /extra/gcc/gcc-10
+BOOSTDIR := /extra/boost/boost-1.76_gcc-11
+GCCDIR := /extra/gcc/gcc-11
 GTESTDIR := /usr/local/include
 CPP := $(GCCDIR)/bin/g++
 
@@ -35,8 +35,7 @@ OUTFILE := EndToEnd_Test
 
 CFG_INC := -I/home/dpriedel/projects/github/Extractor_Markup/src \
 	-I$(GTESTDIR) \
-	-I$(BOOSTDIR) \
-	-I/extra/gcc/cpp-json/include/
+	-I$(BOOSTDIR) 
 
 RPATH_LIB := -Wl,-rpath,$(GCCDIR)/lib64 -Wl,-rpath,$(BOOSTDIR)/lib -Wl,-rpath,/usr/local/lib
 
@@ -69,7 +68,7 @@ OUTDIR=Debug_e2e
 CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-L$(BOOSTDIR)/lib \
-		-lboost_regex-mt-d-x64 \
+		-lboost_json-mt-x64 \
 		-lboost_program_options-mt-x64 \
 		-lgtest -lgtest_main \
 		-L/usr/local/lib \
@@ -78,7 +77,7 @@ CFG_LIB := -lpthread \
 		-lgq \
 		-lfmt \
 		-lspdlog \
-		-ltz \
+		-ldate-tz \
 		-lpqxx \
 		-L/usr/lib \
 		-lexpat \
@@ -92,7 +91,7 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
-COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++2a -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_FMT_EXTERNAL -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++20 -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_FMT_EXTERNAL -DBOOST_REGEX_STANDALONE -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 
 endif #	DEBUG configuration

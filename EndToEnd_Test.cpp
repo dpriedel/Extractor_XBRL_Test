@@ -41,7 +41,7 @@
 #include <filesystem>
 #include <pqxx/pqxx>
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #include <gmock/gmock.h>
 
@@ -140,7 +140,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -185,7 +185,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXMLNoNamespace10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -230,7 +230,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML_NoSharesOUt10K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -277,7 +277,7 @@ TEST_F(SingleFileEndToEnd, VerifyCanLoadDataToDBForFileWithXML10K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -322,7 +322,7 @@ TEST_F(SingleFileEndToEnd, WorkWithBadFile210K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -434,7 +434,7 @@ TEST_F(ProcessFolderEndtoEnd, TestNoInputFiles)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -479,7 +479,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList2)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -525,7 +525,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -572,7 +572,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -619,7 +619,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -669,7 +669,7 @@ TEST_F(ProcessFolderEndtoEnd, CheckSkipsFilesBecauseOfFormName)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -717,7 +717,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -765,7 +765,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -814,7 +814,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -843,7 +843,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
     {
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -889,7 +889,7 @@ TEST_F(ProcessFolderEndtoEnd, DISABLED_WorkWithFileListBadFile10K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -935,7 +935,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -981,7 +981,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1027,7 +1027,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1074,7 +1074,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync10Q)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1119,7 +1119,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310K)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1164,7 +1164,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1211,7 +1211,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1258,7 +1258,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters3)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1306,7 +1306,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters4ShortCIKFails)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1354,7 +1354,7 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters5)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1399,7 +1399,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1446,7 +1446,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1499,7 +1499,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
 //
 //     myApp.init(tokens);
 //
-// 	decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+// 	const auto *test_info = UnitTest::GetInstance()->current_test_info();
 // 	myApp.logger().information(std::string("\n\nTest: ") + test_info->name() + " test case: " + test_info->test_case_name() + "\n\n");
 //
 //     myApp.run();
@@ -1570,7 +1570,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	{
         ExtractorApp myApp(tokens);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1610,7 +1610,7 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
 	{
         ExtractorApp myApp(tokens2);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1656,7 +1656,7 @@ TEST_F(ProcessAmendedForms, VerifyCanAddDataFromAmendedFormToDBWhenNoOriginalDat
 	{
         ExtractorApp myApp(tokens2);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1703,7 +1703,7 @@ TEST_F(ProcessAmendedForms, VerifyNoThrowWhenTryToAsyncReplaceAmendedDataWithOld
 	{
         ExtractorApp myApp(tokens2);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1820,7 +1820,7 @@ TEST_F(TestDBErrors, VerifyThrowsOnDuplicateKeyAsync)
 	{
         ExtractorApp myApp(tokens2);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 
@@ -1869,7 +1869,7 @@ TEST_F(TestDBErrors, LookForConversionErrors)
 	{
         ExtractorApp myApp(tokens2);
 
-		decltype(auto) test_info = UnitTest::GetInstance()->current_test_info();
+		const auto *test_info = UnitTest::GetInstance()->current_test_info();
         spdlog::info(catenate("\n\nTest: ", test_info->name(), " test case: ",
                 test_info->test_case_name(), "\n\n"));
 

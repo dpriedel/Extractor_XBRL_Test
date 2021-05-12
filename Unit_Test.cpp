@@ -49,24 +49,19 @@
 
 #include <gmock/gmock.h>
 
-#include <range/v3/action/sort.hpp>
-#include <range/v3/algorithm/equal.hpp>
-#include <range/v3/algorithm/for_each.hpp>
-#include <range/v3/algorithm/set_algorithm.hpp>
-#include <range/v3/algorithm/find_if.hpp>
-#include <range/v3/action/transform.hpp>
-#include <range/v3/iterator.hpp>
-#include <range/v3/view/filter.hpp>
-
-namespace fs = std::filesystem;
-
-using namespace testing;
-
 #include "Extractor.h"
 #include "Extractor_Utils.h"
 #include "Extractor_XBRL_FileFilter.h"
 #include "SEC_Header.h"
 #include "XLS_Data.h"
+
+#include <range/v3/all.hpp>
+
+namespace rng = ranges;
+
+namespace fs = std::filesystem;
+
+using namespace testing;
 
 
 // some specific files for Testing.
@@ -171,21 +166,21 @@ void PrintRangeDifferences(const std::vector<EM::GAAP_Data>& rng1, const std::ve
 {
     std::cout << "Items in first range: " << rng1.size() << '\n';
     std::vector<EM::GAAP_Data> in_rng1_only;
-    auto x = ranges::set_difference(rng1, rng2,
-            ranges::back_inserter(in_rng1_only),
+    auto x = rng::set_difference(rng1, rng2,
+            rng::back_inserter(in_rng1_only),
             [](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; });
 
     std::cout << "\n\nItems missing from amended form.\n\n";
-    ranges::for_each(in_rng1_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
+    rng::for_each(in_rng1_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
 
     std::cout << "Items in second range: " << rng2.size() << '\n';
     std::vector<EM::GAAP_Data> in_rng2_only;
-    auto y = ranges::set_difference(rng2, rng1,
-            ranges::back_inserter(in_rng2_only),
+    auto y = rng::set_difference(rng2, rng1,
+            rng::back_inserter(in_rng2_only),
             [](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; });
 
     std::cout << "\n\nItems missing from original form.\n\n";
-    ranges::for_each(in_rng2_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
+    rng::for_each(in_rng2_only, [](const auto& e) {std::cout << e.label << " : " << e.context_ID << " : " << e.value << '\n'; } );
 
 }
 
@@ -197,7 +192,7 @@ class IdentifyXMLFilesToUse : public Test
 TEST_F(IdentifyXMLFilesToUse, FileNameHasForm)
 {
     std::string form = "10-Q,10-Q/A";
-    form |= ranges::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    form |= rng::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
     auto form_list = split_string<std::string>(form, ',');
 
     bool test1 = FormIsInFileName(form_list, FILE_WITH_XML_10Q);
@@ -207,7 +202,7 @@ TEST_F(IdentifyXMLFilesToUse, FileNameHasForm)
     EXPECT_THAT(test2, Eq(true));
 
     std::string form2 = "10-K,10-K/A";
-    form2 |= ranges::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    form2 |= rng::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
     auto form_list2 = split_string<std::string>(form2, ',');
 
     bool test3 = FormIsInFileName(form_list2, FILE_WITH_XML_10Q);
@@ -1179,9 +1174,9 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     auto orig_instance_xml = ParseXMLContent(orig_instance_document);
 
     auto orig_gaap_data = ExtractGAAPFields(orig_instance_xml);
-//    ranges::for_each(orig_gaap_data, [](const auto& d) { std::cout << d.label << '\n'; }); 
+//    rng::for_each(orig_gaap_data, [](const auto& d) { std::cout << d.label << '\n'; }); 
     EXPECT_EQ(orig_gaap_data.size(), 397);
-    orig_gaap_data = std::move(orig_gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
+    orig_gaap_data = std::move(orig_gaap_data) | rng::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
 
     int orig_result = FindAllLabels(orig_gaap_data, orig_label_data);
 
@@ -1201,14 +1196,14 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
-    gaap_data = std::move(gaap_data) | ranges::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
+    gaap_data = std::move(gaap_data) | rng::actions::sort([](const auto& lhs, const auto& rhs) { return lhs.label < rhs.label; }) ;
     EXPECT_EQ(gaap_data.size(), 680);
 
     int result = FindAllLabels(gaap_data, label_data);
 
     EXPECT_TRUE(result == 0);
 
-    ASSERT_FALSE(ranges::equal(orig_gaap_data, gaap_data, [](const auto& lhs, const auto& rhs) { return lhs.label == rhs.label && lhs.value == rhs.value; }));
+    ASSERT_FALSE(rng::equal(orig_gaap_data, gaap_data, [](const auto& lhs, const auto& rhs) { return lhs.label == rhs.label && lhs.value == rhs.value; }));
 
 //    PrintRangeDifferences(orig_gaap_data, gaap_data);
 }
@@ -1233,9 +1228,9 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
 
    XLS_File xls_file{std::move(xls_data)};
 
-   int number_of_sheets = ranges::distance(xls_file);
+   int number_of_sheets = rng::distance(xls_file);
    EXPECT_EQ(number_of_sheets, 20);
-   int number_of_sheets2 = ranges::distance(xls_file);
+   int number_of_sheets2 = rng::distance(xls_file);
    EXPECT_EQ(number_of_sheets2, 20);
 
    auto s1 = xls_file.begin();
@@ -1243,21 +1238,21 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
    ++s1;
    ++s1;
    auto s2{s1};
-   auto sheets2 = ranges::distance(s2, xls_file.end());
+   auto sheets2 = rng::distance(s2, xls_file.end());
    EXPECT_EQ(sheets2, 17);      // copy should pick up where the other left off
 
    auto s3{std::move(s1)};
-   auto sheets3 = ranges::distance(s3, xls_file.end());
+   auto sheets3 = rng::distance(s3, xls_file.end());
    EXPECT_EQ(sheets3, 17);      // copy should pick up where the other left off
 
    EXPECT_EQ(s1, xls_file.end());
 
-   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
-   EXPECT_TRUE(bal_sheets != ranges::end(xls_file));
-   auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
-   EXPECT_TRUE(bal_sheets2 != ranges::end(xls_file));
+   auto bal_sheets = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
+   EXPECT_TRUE(bal_sheets != rng::end(xls_file));
+   auto bal_sheets2 = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
+   EXPECT_TRUE(bal_sheets2 != rng::end(xls_file));
 
-   int rows = ranges::distance(*bal_sheets);
+   int rows = rng::distance(*bal_sheets);
    EXPECT_EQ(rows, 16);
 
    // now, test some iterator copies
@@ -1266,28 +1261,28 @@ TEST_F(ProcessXLSXContent, CanProcess10KAmendedFile1)
    ++r1;
    ++r1;
    auto r2 = r1;
-   int rows_r2 = ranges::distance(r2, bal_sheets->end());
+   int rows_r2 = rng::distance(r2, bal_sheets->end());
    EXPECT_EQ(rows_r2, 14);      // copy should pick up where the other left off
 
    r1 = bal_sheets->begin();
    ++r1;
    ++r1;
    auto r3{std::move(r1)};
-   int rows_r3 = ranges::distance(r3, bal_sheets->end());
+   int rows_r3 = rng::distance(r3, bal_sheets->end());
    EXPECT_EQ(rows_r3, 14);      // copy should pick up where the other left off
 
    EXPECT_EQ(r1, bal_sheets->end());
 
-   auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
-   EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
+   auto stmt_of_ops = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
+   EXPECT_TRUE(stmt_of_ops != rng::end(xls_file));
 
-   int rows2 = ranges::distance(*stmt_of_ops);
+   int rows2 = rng::distance(*stmt_of_ops);
    EXPECT_EQ(rows2, 18);
 
-   auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of cash flows"; } );
-   EXPECT_TRUE(cash_flows != ranges::end(xls_file));
+   auto cash_flows = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of cash flows"; } );
+   EXPECT_TRUE(cash_flows != rng::end(xls_file));
 
-   int rows3 = ranges::distance(*cash_flows);
+   int rows3 = rng::distance(*cash_flows);
    ASSERT_EQ(rows3, 20);
 
 }
@@ -1307,30 +1302,30 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1)
 
    XLS_File xls_file{std::move(xls_data)};
 
-   int number_of_sheets = ranges::distance(xls_file);
-   int number_of_sheets2 = ranges::distance(xls_file);
+   int number_of_sheets = rng::distance(xls_file);
+   int number_of_sheets2 = rng::distance(xls_file);
    EXPECT_EQ(number_of_sheets2, 69);
 
-   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
-   auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
-   EXPECT_TRUE(bal_sheets2 != ranges::end(xls_file));
+   auto bal_sheets = rng::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+   auto bal_sheets2 = rng::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+   EXPECT_TRUE(bal_sheets2 != rng::end(xls_file));
 
-   int rows = ranges::distance(*bal_sheets);
-   int rowsx = ranges::distance(*bal_sheets);
+   int rows = rng::distance(*bal_sheets);
+   int rowsx = rng::distance(*bal_sheets);
    EXPECT_EQ(rowsx, 40);
 
-   auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of operations") != std::string::npos; } );
-   EXPECT_TRUE(stmt_of_ops != ranges::end(xls_file));
+   auto stmt_of_ops = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of operations") != std::string::npos; } );
+   EXPECT_TRUE(stmt_of_ops != rng::end(xls_file));
 
-   int rows2 = ranges::distance(*stmt_of_ops);
+   int rows2 = rng::distance(*stmt_of_ops);
    EXPECT_EQ(rows2, 35);
 
-   auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of cash flows") != std::string::npos; } );
-   auto cash_flows2 = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of cash flows") != std::string::npos; } );
-   EXPECT_TRUE(cash_flows2 != ranges::end(xls_file));
+   auto cash_flows = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of cash flows") != std::string::npos; } );
+   auto cash_flows2 = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("statements of cash flows") != std::string::npos; } );
+   EXPECT_TRUE(cash_flows2 != rng::end(xls_file));
 
-   int rows3 = ranges::distance(*cash_flows);
-   int rows3a = ranges::distance(*cash_flows);
+   int rows3 = rng::distance(*cash_flows);
+   int rows3a = rng::distance(*cash_flows);
    ASSERT_EQ(rows3a, 44);
 
 }
@@ -1416,13 +1411,13 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel)
     EXPECT_TRUE(financial_content.has_data());
 
     EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 33);
-    ranges::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 25);
-    ranges::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     EXPECT_EQ(financial_content.cash_flows_.values_.size(), 34);
-    ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
 }
 
@@ -1438,13 +1433,13 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1HighLevel2)
     EXPECT_TRUE(financial_content.has_data());
 
     EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 34);
-    ranges::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 14);
-    ranges::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     EXPECT_EQ(financial_content.cash_flows_.values_.size(), 30);
-    ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
 
     EXPECT_EQ(financial_content.outstanding_shares_, 257360875);
@@ -1465,19 +1460,19 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1WithNotesHighLevel)
 
     XLS_File xls_file{std::move(xls_data)};
 
-//   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
-//   auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
-//   EXPECT_TRUE(bal_sheets2 != ranges::end(xls_file));
+//   auto bal_sheets = rng::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+//   auto bal_sheets2 = rng::find_if(xls_file, [] (const auto& x) { return (x.GetSheetNameFromInside().find("balance sheets") != std::string::npos); } );
+//   EXPECT_TRUE(bal_sheets2 != rng::end(xls_file));
 //
-//   int rows = ranges::distance(*bal_sheets);
-//   int rowsx = ranges::distance(*bal_sheets);
+//   int rows = rng::distance(*bal_sheets);
+//   int rowsx = rng::distance(*bal_sheets);
 //   EXPECT_EQ(rowsx, 40);
 
-    auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("cash flow") != std::string::npos; } );
-    EXPECT_TRUE(cash_flows != ranges::end(xls_file));
-    int rows = ranges::distance(*cash_flows);
+    auto cash_flows = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetNameFromInside().find("cash flow") != std::string::npos; } );
+    EXPECT_TRUE(cash_flows != rng::end(xls_file));
+    int rows = rng::distance(*cash_flows);
     EXPECT_EQ(rows, 47);
-    ranges::for_each(*cash_flows, [](const auto& row) {std::cout.write(row.data(), row.size()) ; });
+    rng::for_each(*cash_flows, [](const auto& row) {std::cout.write(row.data(), row.size()) ; });
 
 //    auto file_content_10Q = LoadDataFileForUse(AMENDED_10Q);
 //    EM::FileContent file_content{file_content_10Q};
@@ -1488,15 +1483,15 @@ TEST_F(ProcessXLSXContent, CanProcess10QFile1WithNotesHighLevel)
     EXPECT_TRUE(financial_content.has_data());
 
     EXPECT_EQ(financial_content.balance_sheet_.values_.size(), 25);
-    ranges::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.balance_sheet_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     // one row is a zero with no note so it's OK to not extract it. Counting the zero, right answer is 16
     EXPECT_EQ(financial_content.statement_of_operations_.values_.size(), 15);
-    ranges::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.statement_of_operations_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
     // one row is a zero with no note so it's OK to not extract it. Counting the zero, right answer is 30
     EXPECT_EQ(financial_content.cash_flows_.values_.size(), 29);
-    ranges::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
+    rng::for_each(financial_content.cash_flows_.values_, [](const auto& row) { std::cout << row.first << '\t' << row.second << '\n'; });
     std::cout << "\n\n\n";
 }
 
@@ -1532,25 +1527,25 @@ int main(int argc, char** argv)
 //
 //   XLS_File xls_file{std::move(xls_data)};
 //
-//   int number_of_sheets = ranges::distance(xls_file);
-////   int number_of_sheets2 = ranges::distance(xls_file);
+//   int number_of_sheets = rng::distance(xls_file);
+////   int number_of_sheets2 = rng::distance(xls_file);
 //
-//   auto bal_sheets = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
-////   auto bal_sheets2 = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
+//   auto bal_sheets = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
+////   auto bal_sheets2 = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "balance sheets"; } );
 //
-////   int rows = ranges::distance(*bal_sheets);
+////   int rows = rng::distance(*bal_sheets);
 //   for (const auto& row : *bal_sheets)
 //   {
 //       std::cout << row << '\n';
 //   }
 //
-//   auto stmt_of_ops = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
+//   auto stmt_of_ops = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of operations"; } );
 //
-//   int rows2 = ranges::distance(*stmt_of_ops);
+//   int rows2 = rng::distance(*stmt_of_ops);
 //
 //    return 0;
-//   auto cash_flows = ranges::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of cash flows"; } );
+//   auto cash_flows = rng::find_if(xls_file, [] (const auto& x) { return x.GetSheetName() == "statements of cash flows"; } );
 //
-//   int rows3 = ranges::distance(*cash_flows);
+//   int rows3 = rng::distance(*cash_flows);
 //
 }
