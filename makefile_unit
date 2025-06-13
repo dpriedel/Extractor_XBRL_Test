@@ -66,6 +66,8 @@ OUTDIR := Debug_unit
 #
 CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
+		-lstdc++ \
+		-lstdc++exp \
 		-L$(BOOSTDIR)/lib \
 		-lboost_json-mt-x64 \
 		-L/usr/local/lib \
@@ -87,7 +89,7 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
-COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -DSPDLOG_FMT_EXTERNAL -DBOOST_REGEX_STANDALONE -DSPDLOG_USE_STD_FORMAT  -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -DBOOST_REGEX_STANDALONE -DSPDLOG_USE_STD_FORMAT -DUSE_OS_TZDB  -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 # COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++20 -D NOCERTTEST -DBOOST_ENABLE_ASSERT_HANDLER -D_DEBUG -DSPDLOG_FMT_EXTERNAL -fPIC -fsanitize=address -o $@ $(CFG_INC) $< -march=native -MMD -MP
 # LINK := $(CPP)  -g -fsanitize=address  -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
