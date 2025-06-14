@@ -74,7 +74,6 @@ CFG_LIB := -lpthread \
 		-lgtest -lgtest_main \
 		-lxlsxio_read \
 		-lspdlog \
-		-ldate-tz \
 		-lpqxx \
 		-L/usr/lib \
 		-lfmt \

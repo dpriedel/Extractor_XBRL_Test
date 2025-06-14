@@ -77,7 +77,6 @@ CFG_LIB := -lpthread \
 		-lgq \
 		-lfmt \
 		-lspdlog \
-		-ldate-tz \
 		-lpqxx \
 		-L/usr/lib \
 		-lexpat \

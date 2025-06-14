@@ -61,6 +61,8 @@ namespace rng = ranges;
 
 namespace fs = std::filesystem;
 
+using namespace std::chrono_literals;
+
 using namespace testing;
 
 // some specific files for Testing.
@@ -954,9 +956,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRange)
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
+            using namespace std::chrono;
             FileHasXBRL filter1;
-            using namespace date;
-            FileIsWithinDateRange filter2{year_month_day{2013_y / January / 1}, year_month_day{2013_y / 9 / 30}};
+            FileIsWithinDateRange filter2{year_month_day{2013y / January / 1}, year_month_day{2013y / 9 / 30}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
@@ -987,9 +989,9 @@ TEST_F(ValidateFolderFilters, VerifyFindAllInDateRangeNoMatches)
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
-            using namespace date;
+            using namespace std::chrono;
             FileHasXBRL filter1;
-            FileIsWithinDateRange filter2{year_month_day{2015_y / January / 1}, year_month_day{2015_y / 9 / 30}};
+            FileIsWithinDateRange filter2{year_month_day{2015y / January / 1}, year_month_day{2015y / 9 / 30}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2);
             if (has_form)
@@ -1020,11 +1022,11 @@ TEST_F(ValidateFolderFilters, VerifyComboFiltersWithMatches)
             SEC_data.UseData(file_content);
             SEC_data.ExtractHeaderFields();
 
-            using namespace date;
+            using namespace std::chrono;
             FileHasXBRL filter1;
             std::vector<std::string> forms{"10-Q"};
             FileHasFormType filter2{forms};
-            FileIsWithinDateRange filter3{year_month_day{2013_y / 3 / 1}, year_month_day{2013_y / 3 / 31}};
+            FileIsWithinDateRange filter3{year_month_day{2013y / 3 / 1}, year_month_day{2013y / 3 / 31}};
 
             bool has_form = ApplyFilters(SEC_data.GetFields(), sections, filter1, filter2, filter3);
             if (has_form)
