@@ -76,7 +76,6 @@ CFG_LIB := -lpthread \
 		-lspdlog \
 		-lpqxx \
 		-L/usr/lib \
-		-lfmt \
 		-lexpat \
 		-lpugixml \
 		-lzip \
