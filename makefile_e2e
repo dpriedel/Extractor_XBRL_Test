@@ -72,8 +72,8 @@ CFG_LIB := -lpthread \
 		-L$(BOOSTDIR)/lib \
 		-lboost_json-mt-x64 \
 		-lboost_program_options-mt-x64 \
-		-lgtest -lgtest_main \
 		-L/usr/local/lib \
+		-lgtest -lgtest_main \
 		-lxlsxio_read \
 		-lgumbo \
 		-lgq \
@@ -91,6 +91,7 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
 
+# COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_USE_STD_FORMAT -DBOOST_REGEX_STANDALONE -DUSE_OS_TZDB -DSHOW_STRACE -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_USE_STD_FORMAT -DBOOST_REGEX_STANDALONE -DUSE_OS_TZDB -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 
