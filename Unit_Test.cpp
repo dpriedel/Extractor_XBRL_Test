@@ -40,10 +40,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <numeric>
+#include <ranges>
 #include <string>
-#include <system_error>
-#include <thread>
 
 #include <gmock/gmock.h>
 
@@ -55,9 +53,7 @@
 #include "SEC_Header.h"
 #include "XLS_Data.h"
 
-#include <range/v3/all.hpp>
-
-namespace rng = ranges;
+namespace rng = std::ranges;
 
 namespace fs = std::filesystem;
 
@@ -169,7 +165,7 @@ void PrintRangeDifferences(const std::vector<EM::GAAP_Data> &rng1, const std::ve
 {
     std::cout << "Items in first range: " << rng1.size() << '\n';
     std::vector<EM::GAAP_Data> in_rng1_only;
-    auto x = rng::set_difference(rng1, rng2, rng::back_inserter(in_rng1_only),
+    auto x = rng::set_difference(rng1, rng2, std::back_inserter(in_rng1_only),
                                  [](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
 
     std::cout << "\n\nItems missing from amended form.\n\n";
@@ -178,7 +174,7 @@ void PrintRangeDifferences(const std::vector<EM::GAAP_Data> &rng1, const std::ve
 
     std::cout << "Items in second range: " << rng2.size() << '\n';
     std::vector<EM::GAAP_Data> in_rng2_only;
-    auto y = rng::set_difference(rng2, rng1, rng::back_inserter(in_rng2_only),
+    auto y = rng::set_difference(rng2, rng1, std::back_inserter(in_rng2_only),
                                  [](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
 
     std::cout << "\n\nItems missing from original form.\n\n";
@@ -193,8 +189,9 @@ class IdentifyXMLFilesToUse : public Test
 TEST_F(IdentifyXMLFilesToUse, FileNameHasForm)
 {
     std::string form = "10-Q,10-Q/A";
-    form |= rng::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
-    auto form_list = split_string<std::string>(form, ',');
+    rng::transform(form.begin(), form.end(), form.begin(),
+                   [](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    auto form_list = split_string<std::string>(form, ",");
 
     bool test1 = FormIsInFileName(form_list, FILE_WITH_XML_10Q);
     EXPECT_THAT(test1, Eq(false));
@@ -203,8 +200,9 @@ TEST_F(IdentifyXMLFilesToUse, FileNameHasForm)
     EXPECT_THAT(test2, Eq(true));
 
     std::string form2 = "10-K,10-K/A";
-    form2 |= rng::actions::transform([](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
-    auto form_list2 = split_string<std::string>(form2, ',');
+    rng::transform(form2.begin(), form2.end(), form2.begin(),
+                   [](unsigned char c) { return (c == '/' ? '_' : std::toupper(c)); });
+    auto form_list2 = split_string<std::string>(form2, ",");
 
     bool test3 = FormIsInFileName(form_list2, FILE_WITH_XML_10Q);
     EXPECT_THAT(test3, Eq(false));
@@ -1170,8 +1168,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     //    rng::for_each(orig_gaap_data, [](const auto& d) { std::cout << d.label
     //    << '\n'; });
     EXPECT_EQ(orig_gaap_data.size(), 397);
-    orig_gaap_data = std::move(orig_gaap_data) |
-                     rng::actions::sort([](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
+    rng::sort(orig_gaap_data, [](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
 
     int orig_result = FindAllLabels(orig_gaap_data, orig_label_data);
 
@@ -1191,8 +1188,7 @@ TEST_F(ProcessAmendedForms, CompareOriginalAndAmended10Qs)
     auto instance_xml = ParseXMLContent(instance_document);
 
     auto gaap_data = ExtractGAAPFields(instance_xml);
-    gaap_data = std::move(gaap_data) |
-                rng::actions::sort([](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
+    rng::sort(gaap_data, [](const auto &lhs, const auto &rhs) { return lhs.label < rhs.label; });
     EXPECT_EQ(gaap_data.size(), 680);
 
     int result = FindAllLabels(gaap_data, label_data);
