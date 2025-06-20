@@ -41,6 +41,8 @@
 #include <fstream>
 #include <iostream>
 #include <ranges>
+#include <spdlog/async.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <string>
 
 #include <gmock/gmock.h>
@@ -1524,16 +1526,30 @@ void InitLogging()
     //    (
     //        logging::trivial::severity >= logging::trivial::trace
     //    );
-    spdlog::set_level(spdlog::level::debug);
+    // spdlog::set_level(spdlog::level::debug);
 } /* -----  end of function InitLogging  ----- */
 
 int main(int argc, char **argv)
 {
+    spdlog::init_thread_pool(8192, 1);
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
-    InitLogging();
+    // 3. Create an asynchronous logger using the console sink.
+    auto async_logger = std::make_shared<spdlog::async_logger>("UTest_logger", // Name for the console logger
+                                                               spdlog::sinks_init_list{console_sink},
+                                                               spdlog::thread_pool(),
+                                                               spdlog::async_overflow_policy::block);
+
+    spdlog::set_default_logger(async_logger);
+    spdlog::set_level(spdlog::level::info);
+
+    // InitLogging();
 
     InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    auto result = RUN_ALL_TESTS();
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Give time for async processing
+    spdlog::shutdown();                                   // Ensure all messages are flushed
+    return result;
     //    auto file_content_10K = LoadDataFileForUse(XLS_SHEET_1);
     //    EM::FileContent file_content{file_content_10K};
     //

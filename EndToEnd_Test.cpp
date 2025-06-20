@@ -40,6 +40,7 @@
 #include <filesystem>
 #include <pqxx/pqxx>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <gmock/gmock.h>
@@ -67,15 +68,11 @@ const fs::path CONVERSION_ERRORS_FILE_NAMES_10K{"./conversion_error.lst"};
 
 using namespace testing;
 
-std::shared_ptr<spdlog::logger> DEFAULT_LOGGER;
-
 class SingleFileEndToEnd : public Test
 {
 public:
     void SetUp() override
     {
-        spdlog::set_default_logger(DEFAULT_LOGGER);
-
         pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
         pqxx::work trxn{c};
 
@@ -363,8 +360,6 @@ class ProcessFolderEndtoEnd : public Test
 public:
     void SetUp() override
     {
-        spdlog::set_default_logger(DEFAULT_LOGGER);
-
         pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
         pqxx::work trxn{c};
 
@@ -428,11 +423,6 @@ public:
         trxn.commit();
         return row[0].as<int>();
     }
-
-    //        void TearDown() override
-    //        {
-    //            spdlog::shutdown();
-    //        }
 };
 
 TEST_F(ProcessFolderEndtoEnd, TestNoInputFiles)
@@ -479,8 +469,9 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList2)
     //	NOTE: the program name 'the_program' in the command line below is ignored in the
     //	the test program.
 
-    std::vector<std::string> tokens{"the_program", "--mode", "XBRL",       "--log-level",         "information",
-                                    "--form",      "10-K",   "--form-dir", SEC_DIRECTORY.string()};
+    std::vector<std::string> tokens{
+        "the_program",       "--mode", "XBRL", "--log-level", "information",         "--log-path",
+        "/tmp/logfile4.log", "--form", "10-K", "--form-dir",  SEC_DIRECTORY.string()};
 
     try
     {
@@ -527,7 +518,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310Q)
                                     "--form",
                                     "10-Q",
                                     "--log-path",
-                                    "/tmp/test4.log",
+                                    "/tmp/test5.log",
                                     "--list-file",
                                     "./test_directory_list.txt"};
 
@@ -576,7 +567,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListResume10Q)
                                     "--form",
                                     "10-Q",
                                     "--log-path",
-                                    "/tmp/test4.log",
+                                    "/tmp/test6.log",
                                     "--list-file",
                                     "./test_directory_list.txt",
                                     "--resume-at",
@@ -628,7 +619,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFile)
                                     "--form",
                                     "10-Q,10-K",
                                     "--log-path",
-                                    "/tmp/test1.log",
+                                    "/tmp/test7.log",
                                     "--list-file",
                                     "./list_with_bad_file.txt"};
 
@@ -715,7 +706,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithMissingValuesFileList1)
     //	the test program.
 
     std::vector<std::string> tokens{"the_program", "--mode", "XBRL", "--log-level", "information", "--log-path",
-                                    "/tmp/test8.log",
+                                    "/tmp/test9.log",
                                     //		"--list", MISSING_VALUES_LIST,
                                     "--list-file", MISSING_VALUES_LIST_SHORT, "--form", "10-K", "-k", "4"};
 
@@ -765,7 +756,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsFormName)
                                     "--form",
                                     "10-K",
                                     "--log-path",
-                                    "/tmp/test1.log",
+                                    "/tmp/test10.log",
                                     "--list-file",
                                     "./list_with_bad_file.txt",
                                     "--filename-has-form"};
@@ -819,7 +810,7 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileListContainsBadFileRepeat)
         "-k",
         "2",
         "--log-path",
-        "/tmp/test1.log",
+        "/tmp/test11.log",
         "--list-file",
         "./list_with_bad_file.txt",
 
@@ -936,6 +927,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10Q)
                                     "XBRL",
                                     "--log-level",
                                     "information",
+                                    "--log-path",
+                                    "/tmp/logfile12.log",
                                     "--form",
                                     "10-Q",
                                     "--max",
@@ -985,6 +978,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimit10K)
                                     "XBRL",
                                     "--log-level",
                                     "information",
+                                    "--log-path",
+                                    "/tmp/logfile14.log",
                                     "--form",
                                     "10-K",
                                     "--max",
@@ -1034,6 +1029,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3Async10Q)
                                     "XBRL",
                                     "--log-level",
                                     "information",
+                                    "--log-path",
+                                    "/tmp/logfile15.log",
                                     "--form",
                                     "10-Q",
                                     "-k",
@@ -1083,6 +1080,8 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList3WithLimitAsync10Q)
                                     "XBRL",
                                     "--log-level",
                                     "information",
+                                    "--log-path",
+                                    "/tmp/logfile16.log",
                                     "--form",
                                     "10-Q",
                                     "--max",
@@ -1129,9 +1128,17 @@ TEST_F(ProcessFolderEndtoEnd, WorkWithFileList310K)
     //	NOTE: the program name 'the_program' in the command line below is ignored in the
     //	the test program.
 
-    std::vector<std::string> tokens{"the_program", "--mode",      "XBRL",
-                                    "--log-level", "information", "--form",
-                                    "10-K",        "--list-file", "./test_directory_list.txt"};
+    std::vector<std::string> tokens{"the_program",
+                                    "--mode",
+                                    "XBRL",
+                                    "--log-level",
+                                    "information",
+                                    "--form",
+                                    "--log-path",
+                                    "/tmp/logfile17.log",
+                                    "10-K",
+                                    "--list-file",
+                                    "./test_directory_list.txt"};
 
     try
     {
@@ -1170,8 +1177,9 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters)
     //	NOTE: the program name 'the_program' in the command line below is ignored in the
     //	the test program.
 
-    std::vector<std::string> tokens{"the_program", "--mode", "XBRL",       "--log-level",         "information",
-                                    "--form",      "10-K",   "--form-dir", SEC_DIRECTORY.string()};
+    std::vector<std::string> tokens{
+        "the_program",        "--mode", "XBRL", "--log-level", "information",         "--log-path",
+        "/tmp/logfile18.log", "--form", "10-K", "--form-dir",  SEC_DIRECTORY.string()};
 
     try
     {
@@ -1211,8 +1219,9 @@ TEST_F(ProcessFolderEndtoEnd, VerifyCanApplyFilters2)
     //	the test program.
 
     std::vector<std::string> tokens{
-        "the_program", "--mode",      "XBRL",   "--begin-date", "2013-Mar-1", "--end-date",          "2013-3-31",
-        "--log-level", "information", "--form", "10-Q",         "--form-dir", SEC_DIRECTORY.string()};
+        "the_program", "--mode",    "XBRL",       "--begin-date",       "2013-Mar-1",
+        "--end-date",  "2013-3-31", "--log-path", "/tmp/logfile19.log", "--log-level",
+        "information", "--form",    "10-Q",       "--form-dir",         SEC_DIRECTORY.string()};
 
     try
     {
@@ -1386,8 +1395,9 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
     //	NOTE: the program name 'the_program' in the command line below is ignored in the
     //	the test program.
 
-    std::vector<std::string> tokens{"the_program", "--mode", "XBRL",       "--log-level",         "information",
-                                    "--form",      "10-Q",   "--form-dir", SEC_DIRECTORY.string()};
+    std::vector<std::string> tokens{
+        "the_program",        "--mode", "XBRL", "--log-level", "information",         "--log-path",
+        "/tmp/logfile20.log", "--form", "10-Q", "--form-dir",  SEC_DIRECTORY.string()};
 
     try
     {
@@ -1427,8 +1437,19 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
     //	NOTE: the program name 'the_program' in the command line below is ignored in the
     //	the test program.
 
-    std::vector<std::string> tokens{"the_program", "--mode", "XBRL", "--log-level", "information",         "--form",
-                                    "10-Q",        "--max",  "14",   "--form-dir",  SEC_DIRECTORY.string()};
+    std::vector<std::string> tokens{"the_program",
+                                    "--mode",
+                                    "XBRL",
+                                    "--log-level",
+                                    "information",
+                                    "--form",
+                                    "--log-path",
+                                    "/tmp/logfile21.log",
+                                    "10-Q",
+                                    "--max",
+                                    "14",
+                                    "--form-dir",
+                                    SEC_DIRECTORY.string()};
 
     try
     {
@@ -1507,8 +1528,6 @@ class ProcessAmendedForms : public Test
 public:
     void SetUp() override
     {
-        spdlog::set_default_logger(DEFAULT_LOGGER);
-
         pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
         pqxx::work trxn{c};
 
@@ -1588,8 +1607,8 @@ TEST_F(ProcessAmendedForms, VerifyCanUpdateDataFromAmendedFormToDBForFileWithXML
     }
     EXPECT_EQ(CountRows(), 69);
 
-    std::vector<std::string> tokens2{"the_program",       "--mode",         "XBRL",   "--log-level", "information",
-                                     "--log-path",        "/tmp/test1.log", "--form", "10-Q/A",      "-f",
+    std::vector<std::string> tokens2{"the_program",       "--mode",          "XBRL",   "--log-level", "information",
+                                     "--log-path",        "/tmp/test22.log", "--form", "10-Q/A",      "-f",
                                      AMENDED_10Q.string()};
 
     try
@@ -1723,8 +1742,6 @@ class TestDBErrors : public Test
 public:
     void SetUp() override
     {
-        spdlog::set_default_logger(DEFAULT_LOGGER);
-
         pqxx::connection c{"dbname=sec_extracts user=extractor_pg"};
         pqxx::work trxn{c};
 
@@ -1788,11 +1805,6 @@ public:
         trxn.commit();
         return row[0].as<int>();
     }
-
-    //        void TearDown() override
-    //        {
-    //            spdlog::shutdown();
-    //        }
 };
 
 TEST_F(TestDBErrors, VerifyThrowsOnDuplicateKeyAsync)
@@ -1901,9 +1913,9 @@ TEST_F(TestDBErrors, LookForConversionErrors)
 
 void InitLogging()
 {
-    DEFAULT_LOGGER = spdlog::default_logger();
-    DEFAULT_LOGGER->set_level(spdlog::level::info);
-
+    // DEFAULT_LOGGER = spdlog::default_logger();
+    // DEFAULT_LOGGER->set_level(spdlog::level::info);
+    //
     //    nothing to do for now.
     //    logging::core::get()->set_filter
     //    (
@@ -1913,8 +1925,13 @@ void InitLogging()
 
 int main(int argc, char **argv)
 {
+    // simpler logging setup than unit test because here
+    // the app class will set up required logging.
 
-    InitLogging();
+    auto my_default_logger = spdlog::stdout_color_mt("testing_logger");
+    spdlog::set_default_logger(my_default_logger);
+
+    // InitLogging();
 
     InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
