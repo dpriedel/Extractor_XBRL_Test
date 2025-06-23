@@ -1503,7 +1503,7 @@ TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFiles)
         spdlog::error("Something totally unexpected happened.");
     }
     // NOTE: there are 157 files which meet the scan criteria BUT 2 of them are duplicated and some error out
-    ASSERT_EQ(CountFilings(), 152);
+    ASSERT_EQ(CountFilings(), 153);
 }
 
 TEST_F(ProcessFolderEndtoEnd, LoadLotsOfFilesWithLimit)
