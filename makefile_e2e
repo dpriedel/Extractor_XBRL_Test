@@ -19,11 +19,20 @@
 #
 MAKE=gmake
 
-BOOSTDIR := /extra/boost/boost-1.88_gcc-15
+BOOSTDIR := /extra/boost/boost-1.89_gcc-15
 GCCDIR := /extra/gcc/gcc-15
 GTESTDIR := /usr/local/include
 CPP := $(GCCDIR)/bin/g++
 
+# temporary for migration from boost program_options to CLI11
+
+ifndef "USE_PG_OPTIONS"
+USE_PG_OPTIONS :=
+endif
+
+ifeq ($(USE_PG_OPTIONS), 1)
+  PG_OPTIONS_LIB := -lboost_program_options-mt-x64
+endif
 # If no configuration is specified, "Debug" will be used
 ifndef "CFG"
 	CFG := Debug
@@ -58,20 +67,13 @@ SRCS := $(SRCS1) $(SRCS2)
 
 VPATH := $(SDIR1):$(SDIR2)
 
-#
-# Configuration: Debug
-#
-ifeq "$(CFG)" "Debug"
-
-OUTDIR=Debug_e2e
-
 CFG_LIB := -lpthread \
 		-L$(GCCDIR)/lib64 \
 		-lstdc++ \
 		-lstdc++exp \
 		-L$(BOOSTDIR)/lib \
 		-lboost_json-mt-x64 \
-		-lboost_program_options-mt-x64 \
+		$(PG_OPTIONS_LIB) \
 		-L/usr/local/lib \
 		-lgtest -lgtest_main \
 		-lxlsxio_read \
@@ -90,9 +92,20 @@ OBJS2=$(addprefix $(OUTDIR)/, $(addsuffix .o, $(basename $(notdir $(SRCS2)))))
 
 OBJS=$(OBJS1) $(OBJS2)
 DEPS=$(OBJS:.o=.d)
+#
+# Configuration: Debug
+#
+ifeq "$(CFG)" "Debug"
+
+OUTDIR=Debug_e2e
+
 
 # COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_USE_STD_FORMAT -DBOOST_REGEX_STANDALONE -DUSE_OS_TZDB -DSHOW_STRACE -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+ifeq ($(USE_PG_OPTIONS), 1)
+COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D_DEBUG -DUSE_PG_OPTIONS -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_USE_STD_FORMAT -DBOOST_REGEX_STANDALONE -DUSE_OS_TZDB -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+else
 COMPILE=$(CPP) -c  -x c++  -O0  -g3 -std=c++26 -D_DEBUG -DBOOST_ENABLE_ASSERT_HANDLER -DSPDLOG_USE_STD_FORMAT -DBOOST_REGEX_STANDALONE -DUSE_OS_TZDB -fPIC -o $@ $(CFG_INC) $< -march=native -MMD -MP
+endif
 LINK := $(CPP)  -g -o $(OUTFILE) $(OBJS) $(CFG_LIB) -Wl,-E $(RPATH_LIB)
 
 endif #	DEBUG configuration
